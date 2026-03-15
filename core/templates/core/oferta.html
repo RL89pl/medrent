@@ -474,8 +474,8 @@
           {% for product in products %}
           <a href="{{ product.get_absolute_url }}" class="product-card">
             <div class="product-img">
-              {% if product.image %}
-              <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;">
+              {% if product.main_image %}
+              <img src="{{ product.main_image.url }}" alt="{{ product.name }}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;">
               {% else %}
               {% with icon_key=cat.icon_key size=64 %}{% include "core/partials/category_icon.html" %}{% endwith %}
               {% endif %}

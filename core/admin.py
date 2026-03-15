@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, SiteSettings, ContactMessage
+from .models import Category, Product, ProductImage, SiteSettings, ContactMessage
 
 
 @admin.register(ContactMessage)
@@ -64,6 +64,12 @@ class CategoryAdmin(admin.ModelAdmin):
     ordering = ['order']
 
 
+class ProductImageInline(admin.TabularInline):
+    model = ProductImage
+    extra = 1
+    fields = ['image', 'is_main', 'order']
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['name', 'category', 'subcategory', 'for_rent', 'for_sale', 'is_active', 'order']
@@ -71,9 +77,9 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ['name', 'short_description']
     prepopulated_fields = {'slug': ('name',)}
     list_editable = ['order', 'is_active']
+    inlines = [ProductImageInline]
     fieldsets = (
         (None, {'fields': ('name', 'slug', 'category', 'subcategory', 'is_active', 'order')}),
-        ('Zdjęcie', {'fields': ('image',)}),
         ('Opisy', {'fields': ('short_description', 'long_description')}),
         ('Parametry', {'fields': ('max_load', 'warranty_years', 'ce_certified', 'badge')}),
         ('Dostępność', {'fields': ('for_rent', 'for_sale')}),

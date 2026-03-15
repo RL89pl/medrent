@@ -190,6 +190,45 @@ class Product(models.Model):
     def get_features_list(self):
         return self.features if isinstance(self.features, list) else []
 
+    @property
+    def main_image(self):
+        img = self.images.filter(is_main=True).first()
+        if img:
+            return img.image
+        img = self.images.first()
+        if img:
+            return img.image
+        return self.image  # fallback dla starych wpisów
+
     def get_absolute_url(self):
         from django.urls import reverse
         return reverse('product_detail', kwargs={'slug': self.slug})
+
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE,
+        related_name='images', verbose_name='Produkt'
+    )
+    image = models.ImageField(upload_to='products/', verbose_name='Zdjęcie')
+    is_main = models.BooleanField(default=False, verbose_name='Zdjęcie główne')
+    order = models.PositiveSmallIntegerField(default=0, verbose_name='Kolejność')
+
+    class Meta:
+        ordering = ['-is_main', 'order']
+        verbose_name = 'Zdjęcie produktu'
+        verbose_name_plural = 'Zdjęcia produktu'
+
+    def __str__(self):
+        return f"{self.product.name} – {'główne' if self.is_main else f'#{self.order}'}"
+
+    def save(self, *args, **kwargs):
+        if self.is_main:
+            ProductImage.objects.filter(product=self.product).exclude(pk=self.pk).update(is_main=False)
+        _compress = False
+        if self.image and self.image.name:
+            old = ProductImage.objects.filter(pk=self.pk).values_list('image', flat=True).first() if self.pk else None
+            _compress = old != self.image.name
+        super().save(*args, **kwargs)
+        if _compress:
+            compress_image(self.image)

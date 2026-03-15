@@ -9,7 +9,7 @@
 <meta property="og:type" content="product">
 <meta property="og:title" content="{{ product.name }} – LUMA">
 <meta property="og:description" content="{{ product.short_description|default:'Sprzęt medyczny LUMA – wypożycz lub kup.' }}">
-{% if product.image %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}">{% endif %}
+{% if product.main_image %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ product.main_image.url }}">{% endif %}
 <!-- Favicon -->
 {% if site_settings.favicon %}<link rel="icon" href="{{ site_settings.favicon.url }}">
 <link rel="apple-touch-icon" href="{{ site_settings.favicon.url }}">{% endif %}
@@ -738,8 +738,8 @@
   <!-- LEFT: VISUAL -->
   <div class="product-visual">
     <div class="product-image-card">
-      {% if product.image %}
-      <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;z-index:0;">
+      {% if product.main_image %}
+      <img src="{{ product.main_image.url }}" alt="{{ product.name }}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;z-index:0;">
       {% else %}
       <!-- Category icon SVG -->
       {% if product.category.icon_key == 'wheelchair' %}
