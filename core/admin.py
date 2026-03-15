@@ -18,7 +18,10 @@ class ContactMessageAdmin(admin.ModelAdmin):
 class SiteSettingsAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Logo i marka', {
-            'fields': ('logo',),
+            'fields': ('logo', 'favicon'),
+        }),
+        ('SEO', {
+            'fields': ('meta_description', 'og_image'),
         }),
         ('Hero – sekcja główna', {
             'fields': ('hero_image', 'hero_eyebrow', 'hero_title1', 'hero_title2', 'hero_subtitle'),

@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Oferta{% if active_category %} – {{ active_category.name }}{% endif %} – LUMA</title>
+<meta name="description" content="{% if active_category %}{{ active_category.name }} – {% endif %}Wypożyczalnia sprzętu medycznego LUMA. Szeroki wybór sprzętu rehabilitacyjnego.">
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Oferta{% if active_category %} – {{ active_category.name }}{% endif %} – LUMA">
+<meta property="og:description" content="Wypożyczalnia sprzętu medycznego LUMA. Szeroki wybór sprzętu rehabilitacyjnego.">
+{% if site_settings.og_image %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ site_settings.og_image.url }}">{% endif %}
+<!-- Favicon -->
+{% if site_settings.favicon %}<link rel="icon" href="{{ site_settings.favicon.url }}">
+<link rel="apple-touch-icon" href="{{ site_settings.favicon.url }}">{% endif %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -312,6 +321,16 @@
     .products-grid { grid-template-columns: 1fr; }
   }
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ request.scheme }}://{{ request.get_host }}/"},
+    {"@type": "ListItem", "position": 2, "name": "Oferta{% if active_category %} – {{ active_category.name }}{% endif %}", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'oferta' %}{% if active_slug %}?kategoria={{ active_slug }}{% endif %}"}
+  ]
+}
+</script>
 </head>
 <body>
 

@@ -29,3 +29,8 @@ CSRF_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = [
     f"https://{h}" for h in os.environ.get("ALLOWED_HOSTS", "").split(",") if h
 ]
+
+# ── EMAILLABS ──────────────────────────────────────────────────────────────────
+EMAILLABS_SMTP = os.environ.get("EMAILLABS_SMTP", "")
+EMAILLABS_APP_KEY = os.environ.get("EMAILLABS_APP_KEY", "")
+EMAILLABS_SECRET_KEY = os.environ.get("EMAILLABS_SECRET_KEY", "")

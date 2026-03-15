@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.db.models import Q
 from .models import Product, Category, SiteSettings, ContactMessage
 
@@ -84,10 +84,15 @@ def product_detail(request, slug):
             errors['message'] = 'Wpisz wiadomość.'
 
         if not errors:
-            ContactMessage.objects.create(
+            msg = ContactMessage.objects.create(
                 product=product,
                 name=name, email=email, phone=phone, message=message,
             )
+            try:
+                from .email import send_contact_notification
+                send_contact_notification(msg)
+            except Exception:
+                pass
             sent = True
 
     return render(request, 'core/product_detail.html', {
@@ -98,6 +103,15 @@ def product_detail(request, slug):
         'post': request.POST,
         'site_settings': SiteSettings.get(),
     })
+
+
+def robots_txt(request):
+    lines = [
+        'User-agent: *',
+        'Allow: /',
+        f'Sitemap: {request.scheme}://{request.get_host()}/sitemap.xml',
+    ]
+    return HttpResponse('\n'.join(lines), content_type='text/plain')
 
 
 def search_ajax(request):

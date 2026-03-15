@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.text import slugify
+from .utils import compress_image
 
 
 class ContactMessage(models.Model):
@@ -26,8 +27,22 @@ class ContactMessage(models.Model):
 
 class SiteSettings(models.Model):
     # ── LOGO / MARKA ─────────────────────────────────────────────────────────
-    logo = models.ImageField(upload_to='logo/', blank=True, null=True, verbose_name='Logo firmy',
-                             help_text='Wyświetlane w nagłówku i stopce. Zalecana wysokość: 40–60 px.')
+    logo    = models.ImageField(upload_to='logo/',    blank=True, null=True, verbose_name='Logo firmy',
+                                help_text='Wyświetlane w nagłówku i stopce. Zalecana wysokość: 40–60 px.')
+    favicon = models.ImageField(upload_to='favicon/', blank=True, null=True, verbose_name='Favicon',
+                                help_text='Ikona zakładki przeglądarki. Zalecany rozmiar: 32×32 lub 64×64 px (PNG/ICO).')
+
+    # ── SEO ───────────────────────────────────────────────────────────────────
+    meta_description = models.CharField(
+        max_length=300, blank=True,
+        verbose_name='Meta description (strona główna)',
+        help_text='Opis strony widoczny w wynikach wyszukiwarki. Maks. 160 znaków.'
+    )
+    og_image = models.ImageField(
+        upload_to='og/', blank=True, null=True,
+        verbose_name='OG Image (udostępnianie)',
+        help_text='Grafika widoczna przy udostępnianiu strony w social media. Zalecany rozmiar: 1200×630 px.'
+    )
 
     # ── HERO ─────────────────────────────────────────────────────────────────
     hero_image    = models.ImageField(upload_to='hero/', blank=True, null=True, verbose_name='Zdjęcie tła')
@@ -77,7 +92,31 @@ class SiteSettings(models.Model):
 
     def save(self, *args, **kwargs):
         self.pk = 1
+        # Track which images are new/changed before saving
+        changed_images = []
+        if self.logo and self.logo.name:
+            old = SiteSettings.objects.filter(pk=1).values_list('logo', flat=True).first()
+            if old != self.logo.name:
+                changed_images.append('logo')
+        if self.favicon and self.favicon.name:
+            old = SiteSettings.objects.filter(pk=1).values_list('favicon', flat=True).first()
+            if old != self.favicon.name:
+                changed_images.append('favicon')
+        if self.og_image and self.og_image.name:
+            old = SiteSettings.objects.filter(pk=1).values_list('og_image', flat=True).first()
+            if old != self.og_image.name:
+                changed_images.append('og_image')
+        if self.hero_image and self.hero_image.name:
+            old = SiteSettings.objects.filter(pk=1).values_list('hero_image', flat=True).first()
+            if old != self.hero_image.name:
+                changed_images.append('hero_image')
+        if self.about_image and self.about_image.name:
+            old = SiteSettings.objects.filter(pk=1).values_list('about_image', flat=True).first()
+            if old != self.about_image.name:
+                changed_images.append('about_image')
         super().save(*args, **kwargs)
+        for field_name in changed_images:
+            compress_image(getattr(self, field_name))
 
     @classmethod
     def get(cls):
@@ -133,7 +172,13 @@ class Product(models.Model):
                 slug = f'{base}-{i}'
                 i += 1
             self.slug = slug
+        _compress = False
+        if self.image and self.image.name:
+            old = Product.objects.filter(pk=self.pk).values_list('image', flat=True).first() if self.pk else None
+            _compress = old != self.image.name
         super().save(*args, **kwargs)
+        if _compress:
+            compress_image(self.image)
 
     def __str__(self):
         return self.name

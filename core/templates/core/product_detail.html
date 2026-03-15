@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ product.name }} – LUMA</title>
+{% if product.short_description %}<meta name="description" content="{{ product.short_description }}">{% endif %}
+<!-- Open Graph -->
+<meta property="og:type" content="product">
+<meta property="og:title" content="{{ product.name }} – LUMA">
+<meta property="og:description" content="{{ product.short_description|default:'Sprzęt medyczny LUMA – wypożycz lub kup.' }}">
+{% if product.image %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}">{% endif %}
+<!-- Favicon -->
+{% if site_settings.favicon %}<link rel="icon" href="{{ site_settings.favicon.url }}">
+<link rel="apple-touch-icon" href="{{ site_settings.favicon.url }}">{% endif %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -646,6 +655,17 @@
     .btn-cta-primary { min-width: unset; }
   }
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ request.scheme }}://{{ request.get_host }}/"},
+    {"@type": "ListItem", "position": 2, "name": "Oferta", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'oferta' %}"},
+    {"@type": "ListItem", "position": 3, "name": "{{ product.name }}", "item": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}"}
+  ]
+}
+</script>
 </head>
 <body>
 

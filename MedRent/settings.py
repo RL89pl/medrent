@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sitemaps',
     'rest_framework',
 ]
 
@@ -132,3 +133,8 @@ STATIC_URL = 'static/'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# ── EMAILLABS ──────────────────────────────────────────────────────────────────
+EMAILLABS_SMTP = ''
+EMAILLABS_APP_KEY = ''
+EMAILLABS_SECRET_KEY = ''
