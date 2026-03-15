@@ -25,9 +25,13 @@ class ContactMessage(models.Model):
 
 
 class SiteSettings(models.Model):
+    # ── LOGO / MARKA ─────────────────────────────────────────────────────────
+    logo = models.ImageField(upload_to='logo/', blank=True, null=True, verbose_name='Logo firmy',
+                             help_text='Wyświetlane w nagłówku i stopce. Zalecana wysokość: 40–60 px.')
+
     # ── HERO ─────────────────────────────────────────────────────────────────
     hero_image    = models.ImageField(upload_to='hero/', blank=True, null=True, verbose_name='Zdjęcie tła')
-    hero_eyebrow  = models.CharField(max_length=60,  default='MEDRENT',           verbose_name='Tekst nad tytułem')
+    hero_eyebrow  = models.CharField(max_length=60,  default='LUMA',              verbose_name='Tekst nad tytułem')
     hero_title1   = models.CharField(max_length=80,  default='Wypożyczalnia',     verbose_name='Tytuł – linia 1')
     hero_title2   = models.CharField(max_length=80,  default='Medyczna',          verbose_name='Tytuł – linia 2')
     hero_subtitle = models.CharField(max_length=220, default='Profesjonalny sprzęt rehabilitacyjny – wypożycz, kup lub zamów z dostawą', verbose_name='Podtytuł')
@@ -59,7 +63,7 @@ class SiteSettings(models.Model):
     # ── KONTAKT ───────────────────────────────────────────────────────────────
     contact_phone        = models.CharField(max_length=30,  default='+48 000 000 000',       verbose_name='Telefon')
     contact_phone_hours  = models.CharField(max_length=60,  default='Pon–Pt: 8:00–18:00',   verbose_name='Godziny telefoniczne')
-    contact_email        = models.EmailField(               default='kontakt@medrent.pl',    verbose_name='Email')
+    contact_email        = models.EmailField(               default='kontakt@luma.pl',       verbose_name='Email')
     contact_email_note   = models.CharField(max_length=60,  default='Odpowiadamy w 24h',    verbose_name='Nota przy emailu')
     contact_address      = models.CharField(max_length=200, blank=True,                     verbose_name='Adres')
     contact_address_note = models.CharField(max_length=60,  default='Zapraszamy do siedziby', verbose_name='Nota przy adresie')

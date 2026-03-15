@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ product.name }} – MedRent</title>
+<title>{{ product.name }} – LUMA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -67,6 +67,8 @@
     letter-spacing: 0.04em;
   }
   .nav-logo svg { color: var(--teal); }
+  .site-logo-img { height: 40px; width: auto; object-fit: contain; }
+  .site-logo-img--footer { height: 32px; }
   .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
   .nav-links a {
     text-decoration: none;
@@ -651,11 +653,15 @@
 <nav id="navbar">
   <div class="nav-inner">
     <a href="/" class="nav-logo">
-      <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
-        <path d="M9 1L17 9L9 17L1 9L9 1Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
-        <path d="M9 5L13 9L9 13L5 9L9 5Z" fill="currentColor" opacity="0.5"/>
-      </svg>
-      MEDRENT
+      {% if site_settings.logo %}
+        <img src="{{ site_settings.logo.url }}" alt="LUMA" class="site-logo-img">
+      {% else %}
+        <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+          <path d="M9 1L17 9L9 17L1 9L9 1Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M9 5L13 9L9 13L5 9L9 5Z" fill="currentColor" opacity="0.5"/>
+        </svg>
+        LUMA
+      {% endif %}
     </a>
     <ul class="nav-links">
       <li><a href="/">Home</a></li>
@@ -1027,14 +1033,18 @@
   <div class="footer-inner">
     <div>
       <a href="/" class="footer-logo">
-        <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
-          <path d="M9 1L17 9L9 17L1 9L9 1Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
-          <path d="M9 5L13 9L9 13L5 9L9 5Z" fill="currentColor" opacity="0.5"/>
-        </svg>
-        MEDRENT
+        {% if site_settings.logo %}
+          <img src="{{ site_settings.logo.url }}" alt="LUMA" class="site-logo-img site-logo-img--footer">
+        {% else %}
+          <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
+            <path d="M9 1L17 9L9 17L1 9L9 1Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <path d="M9 5L13 9L9 13L5 9L9 5Z" fill="currentColor" opacity="0.5"/>
+          </svg>
+          LUMA
+        {% endif %}
       </a>
     </div>
-    <p class="footer-copy">© 2026 MedRent – Wypożyczalnia Sprzętu Medycznego</p>
+    <p class="footer-copy">© 2026 LUMA – Wypożyczalnia Sprzętu Medycznego</p>
   </div>
 </footer>
 

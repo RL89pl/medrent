@@ -17,6 +17,9 @@ class ContactMessageAdmin(admin.ModelAdmin):
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):
     fieldsets = (
+        ('Logo i marka', {
+            'fields': ('logo',),
+        }),
         ('Hero – sekcja główna', {
             'fields': ('hero_image', 'hero_eyebrow', 'hero_title1', 'hero_title2', 'hero_subtitle'),
         }),

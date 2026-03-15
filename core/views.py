@@ -55,6 +55,7 @@ def oferta(request):
         'active_category': active_category,
         'search_q': search_q,
         'total': qs.count(),
+        'site_settings': SiteSettings.get(),
     })
 
 
@@ -95,6 +96,7 @@ def product_detail(request, slug):
         'sent': sent,
         'errors': errors,
         'post': request.POST,
+        'site_settings': SiteSettings.get(),
     })
 
 
