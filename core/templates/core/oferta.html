@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oferta{% if active_category %} – {{ active_category.name }}{% endif %} – MedRent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --teal: #1fa896; --teal-dark: #167a6d; --teal-light: #e8f7f5; --teal-mid: #c2ede8;
+    --navy: #12202e; --text: #2c3e50; --text-muted: #637381;
+    --bg: #f5f8f8; --bg-white: #ffffff; --border: #e2eeec;
+    --shadow: 0 4px 24px rgba(18,32,46,0.08); --shadow-hover: 0 12px 40px rgba(18,32,46,0.15);
+    --radius: 12px;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'DM Sans', sans-serif; color: var(--text); background: var(--bg); line-height: 1.6; overflow-x: hidden; }
+
+  /* NAVBAR */
+  #navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(255,255,255,0.97); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); box-shadow: 0 2px 16px rgba(18,32,46,0.06); height: 68px; }
+  .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 100%; display: flex; align-items: center; justify-content: space-between; }
+  .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; color: var(--navy); letter-spacing: 0.04em; }
+  .nav-logo svg { color: var(--teal); }
+  .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
+  .nav-links a { text-decoration: none; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.12em; color: var(--text-muted); text-transform: uppercase; transition: color .2s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--teal); }
+  .nav-cta { background: var(--teal) !important; color: #fff !important; padding: 8px 20px; border-radius: 6px; }
+  .nav-cta:hover { background: var(--teal-dark) !important; }
+  .nav-search { position: relative; }
+  .nav-search-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; padding: 7px; border-radius: 8px; transition: color .2s, background .2s; }
+  .nav-search-btn:hover { color: var(--teal); background: var(--teal-light); }
+  .search-box { position: absolute; top: calc(100% + 10px); right: 0; width: 400px; background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 12px 48px rgba(18,32,46,0.14); display: none; z-index: 2000; overflow: hidden; }
+  .search-box.open { display: block; }
+  .search-input-wrap { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .search-input-wrap svg { color: var(--text-muted); flex-shrink: 0; }
+  .search-input-wrap input { flex: 1; border: none; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.92rem; color: var(--text); background: transparent; }
+  .search-input-wrap input::placeholder { color: #b0bec5; }
+  .search-results { max-height: 380px; overflow-y: auto; }
+  .search-result-item { display: flex; align-items: center; gap: 12px; padding: 11px 16px; text-decoration: none; color: inherit; transition: background .15s; border-bottom: 1px solid var(--border); }
+  .search-result-item:last-child { border-bottom: none; }
+  .search-result-item:hover { background: var(--teal-light); }
+  .search-result-thumb { width: 48px; height: 48px; border-radius: 8px; background: var(--teal-light); display: flex; align-items: center; justify-content: center; color: var(--teal); flex-shrink: 0; overflow: hidden; }
+  .search-result-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .search-result-name { font-weight: 600; font-size: 0.87rem; color: var(--navy); line-height: 1.3; }
+  .search-result-cat { font-size: 0.68rem; color: var(--teal); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+  .search-result-desc { font-size: 0.76rem; color: var(--text-muted); margin-top: 3px; line-height: 1.4; }
+  .search-footer { padding: 11px 16px; border-top: 1px solid var(--border); text-align: center; }
+  .search-footer a { font-size: 0.8rem; font-weight: 600; color: var(--teal); text-decoration: none; }
+  .search-empty { padding: 28px 16px; text-align: center; color: var(--text-muted); font-size: 0.88rem; }
+  .search-loading { padding: 20px 16px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+  @media (max-width: 500px) { .search-box { width: calc(100vw - 32px); right: -16px; } }
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; }
+  .hamburger span { display: block; width: 24px; height: 2px; background: var(--navy); border-radius: 2px; transition: .3s; }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .mobile-menu { display: none; position: fixed; top: 68px; left: 0; right: 0; background: #fff; border-bottom: 1px solid var(--border); padding: 20px 24px; z-index: 999; box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+  .mobile-menu.open { display: block; }
+  .mobile-menu a { display: block; padding: 14px 0; text-decoration: none; font-size: 0.9rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text); border-bottom: 1px solid var(--border); transition: color .2s; }
+  .mobile-menu a:last-child { border-bottom: none; }
+  .mobile-menu a:hover { color: var(--teal); }
+
+  /* PAGE HERO */
+  .page-hero {
+    margin-top: 68px;
+    background: linear-gradient(135deg, var(--navy) 0%, #1a3d54 60%, var(--teal-dark) 100%);
+    padding: 56px 0 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .page-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 80% 50%, rgba(31,168,150,0.2) 0%, transparent 60%);
+  }
+  .page-hero .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+  .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: rgba(255,255,255,0.5); margin-bottom: 20px; flex-wrap: wrap; }
+  .breadcrumb a { color: rgba(255,255,255,0.5); text-decoration: none; transition: color .2s; }
+  .breadcrumb a:hover { color: rgba(255,255,255,0.9); }
+  .breadcrumb svg { opacity: 0.4; flex-shrink: 0; }
+  .breadcrumb .current { color: rgba(255,255,255,0.85); }
+  .hero-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .hero-text h1 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 700; color: #fff; line-height: 1.2; }
+  .hero-text p { font-size: 0.95rem; color: rgba(255,255,255,0.65); margin-top: 10px; max-width: 480px; }
+  .hero-count { font-size: 0.78rem; font-weight: 600; color: rgba(255,255,255,0.5); letter-spacing: 0.08em; white-space: nowrap; }
+  .hero-count span { font-size: 2rem; font-family: 'Playfair Display', serif; font-weight: 700; color: var(--teal); display: block; line-height: 1; }
+
+  /* SEARCH + FILTERS BAR */
+  .filters-bar {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 68px;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(18,32,46,0.04);
+  }
+  .filters-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .filters-inner::-webkit-scrollbar { display: none; }
+
+  /* Search */
+  .search-form {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border-right: 1px solid var(--border);
+    padding-right: 16px;
+    margin-right: 16px;
+    flex-shrink: 0;
+  }
+  .search-input {
+    border: none;
+    outline: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    color: var(--text);
+    background: transparent;
+    width: 200px;
+    padding: 18px 0;
+  }
+  .search-input::placeholder { color: #b0bec5; }
+  .search-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    transition: color .2s;
+  }
+  .search-btn:hover { color: var(--teal); }
+
+  /* Category filter tabs */
+  .filter-tabs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 0;
+    flex-shrink: 0;
+  }
+  .filter-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    text-decoration: none;
+    color: var(--text-muted);
+    border: 1.5px solid transparent;
+    transition: all .2s;
+  }
+  .filter-tab:hover { color: var(--teal); background: var(--teal-light); }
+  .filter-tab.active { color: var(--teal-dark); background: var(--teal-light); border-color: var(--teal-mid); }
+  .filter-tab svg { flex-shrink: 0; }
+  .filter-tab-all { color: var(--navy); }
+  .filter-tab-all.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .filter-tab-all.active:hover { background: var(--navy); }
+
+  /* Clear search */
+  .clear-search {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #e74c3c;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1.5px solid #fcdcd9;
+    background: #fef5f4;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-left: 8px;
+    transition: background .2s;
+  }
+  .clear-search:hover { background: #fcdcd9; }
+
+  /* CONTENT */
+  .content-wrap { max-width: 1200px; margin: 0 auto; padding: 48px 24px 96px; }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 80px 24px;
+    color: var(--text-muted);
+  }
+  .empty-state svg { opacity: 0.25; margin-bottom: 20px; }
+  .empty-state h3 { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--navy); margin-bottom: 10px; }
+  .empty-state p { font-size: 0.92rem; }
+  .empty-state a { color: var(--teal); text-decoration: none; font-weight: 600; }
+
+  /* Category block */
+  .category-block { margin-bottom: 64px; scroll-margin-top: 130px; }
+  .category-block:last-child { margin-bottom: 0; }
+  .category-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--border);
+  }
+  .category-icon {
+    width: 44px; height: 44px;
+    background: var(--teal);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .category-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--navy); }
+  .category-count { margin-left: auto; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); background: var(--bg); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+
+  .subcategory-row { grid-column: 1 / -1; margin-top: 20px; }
+  .subcategory-row:first-child { margin-top: 0; }
+  .subcategory-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal); padding: 5px 12px; background: var(--teal-light); border-radius: 4px; display: inline-block; }
+
+  /* Product grid */
+  .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+
+  /* Product card */
+  .product-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform .3s, box-shadow .3s, border-color .3s;
+    text-decoration: none;
+    color: inherit;
+  }
+  .product-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: var(--teal-mid); }
+  .product-img {
+    height: 160px;
+    background: linear-gradient(135deg, var(--teal-light) 0%, var(--teal-mid) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--teal-dark);
+    position: relative;
+    overflow: hidden;
+  }
+  .product-img::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 70% 30%, rgba(255,255,255,0.3) 0%, transparent 60%); }
+  .product-img svg { opacity: 0.5; }
+  .product-badge-ce { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.92); color: var(--navy); font-size: 0.62rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; z-index: 1; letter-spacing: 0.06em; }
+  .availability-dots { position: absolute; bottom: 10px; left: 10px; display: flex; gap: 6px; z-index: 1; }
+  .avail-dot-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.62rem; font-weight: 600; padding: 3px 8px; border-radius: 20px; }
+  .dot-rent { background: var(--teal); color: #fff; }
+  .dot-sale { background: rgba(255,255,255,0.85); color: var(--navy); }
+  .product-body { padding: 18px; flex: 1; display: flex; flex-direction: column; }
+  .product-cat-tag { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); margin-bottom: 6px; }
+  .product-name { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: var(--navy); line-height: 1.3; margin-bottom: 8px; }
+  .product-short-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 12px; }
+  .product-specs { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
+  .spec-badge { font-size: 0.68rem; font-weight: 500; padding: 3px 9px; border-radius: 20px; background: var(--teal-light); color: var(--teal-dark); border: 1px solid var(--teal-mid); }
+  .product-footer { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .btn-detail { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); text-decoration: none; transition: gap .2s; }
+  .btn-detail:hover { gap: 8px; }
+  .btn-inquiry-sm { display: inline-flex; align-items: center; gap: 5px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); text-decoration: none; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; transition: all .2s; }
+  .btn-inquiry-sm:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-light); }
+
+  /* Max load badge */
+  .max-load-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.7rem; font-weight: 600; color: var(--text-muted); }
+
+  /* BACK TO TOP */
+  .back-to-top { position: fixed; bottom: 28px; right: 28px; width: 44px; height: 44px; background: var(--teal); color: #fff; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(31,168,150,0.4); opacity: 0; transition: opacity .3s, transform .3s; transform: translateY(10px); z-index: 500; }
+  .back-to-top.visible { opacity: 1; transform: translateY(0); }
+  .back-to-top:hover { background: var(--teal-dark); }
+
+  /* FOOTER */
+  footer { background: var(--navy); color: rgba(255,255,255,0.5); padding: 40px 0 28px; }
+  .footer-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .footer-logo { display: flex; align-items: center; gap: 8px; font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: #fff; text-decoration: none; }
+  .footer-logo svg { color: var(--teal); }
+  .footer-copy { font-size: 0.75rem; color: rgba(255,255,255,0.3); }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+    .search-input { width: 140px; }
+    .hero-count { display: none; }
+  }
+  @media (max-width: 600px) {
+    .products-grid { grid-template-columns: 1fr 1fr; }
+    .search-form { display: none; }
+  }
+  @media (max-width: 400px) {
+    .products-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+        <path d="M9 1L17 9L9 17L1 9L9 1Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        <path d="M9 5L13 9L9 13L5 9L9 5Z" fill="currentColor" opacity="0.5"/>
+      </svg>
+      MEDRENT
+    </a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="{% url 'oferta' %}" class="active">Oferta</a></li>
+      <li><a href="/#o-nas">O nas</a></li>
+      <li><a href="/#kontakt" class="nav-cta">Kontakt</a></li>
+    </ul>
+    <div class="nav-search">
+      <button class="nav-search-btn" id="searchToggle" aria-label="Szukaj">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      </button>
+      <div class="search-box" id="searchBox">
+        <div class="search-input-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" id="navSearchInput" placeholder="Szukaj produktu..." autocomplete="off">
+        </div>
+        <div class="search-results" id="searchResults"></div>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="/">Home</a>
+  <a href="{% url 'oferta' %}">Oferta</a>
+  <a href="/#o-nas">O nas</a>
+  <a href="/#kontakt">Kontakt</a>
+</div>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="/">Strona główna</a>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      <span class="current">Oferta</span>
+      {% if active_category %}
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      <span class="current">{{ active_category.name }}</span>
+      {% endif %}
+    </nav>
+    <div class="hero-row">
+      <div class="hero-text">
+        <h1>{% if active_category %}{{ active_category.name }}{% elif search_q %}Wyniki wyszukiwania{% else %}Pełna Oferta{% endif %}</h1>
+        <p>{% if search_q %}Wyniki dla: <strong style="color:#fff;">„{{ search_q }}"</strong>{% else %}Profesjonalny sprzęt medyczny i rehabilitacyjny – bez cen, indywidualna wycena{% endif %}</p>
+      </div>
+      <div class="hero-count">
+        <span>{{ total }}</span>
+        produkt{% if total == 1 %}{% elif total < 5 %}y{% else %}ów{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FILTERS BAR -->
+<div class="filters-bar">
+  <div class="filters-inner">
+    <!-- Search -->
+    <form class="search-form" method="get" action="{% url 'oferta' %}" id="filterForm" autocomplete="off">
+      {% if active_slug %}<input type="hidden" name="kategoria" value="{{ active_slug }}">{% endif %}
+      <input type="text" name="q" id="filterSearchInput" value="{{ search_q }}" placeholder="Szukaj produktu..." class="search-input">
+      <button type="submit" class="search-btn" aria-label="Szukaj">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+        </svg>
+      </button>
+    </form>
+
+    <!-- Category tabs -->
+    <div class="filter-tabs">
+      <a href="{% url 'oferta' %}{% if search_q %}?q={{ search_q }}{% endif %}"
+         class="filter-tab filter-tab-all {% if not active_slug %}active{% endif %}">
+        Wszystkie
+      </a>
+      {% for cat in categories %}
+      <a href="{% url 'oferta' %}?kategoria={{ cat.slug }}{% if search_q %}&q={{ search_q }}{% endif %}"
+         class="filter-tab {% if active_slug == cat.slug %}active{% endif %}"
+         id="tab-{{ cat.slug }}">
+        <span style="display:flex;align-items:center;flex-shrink:0;">
+          {% with icon_key=cat.icon_key size=14 %}{% include "core/partials/category_icon.html" %}{% endwith %}
+        </span>
+        {{ cat.name }}
+      </a>
+      {% endfor %}
+    </div>
+
+    {% if search_q %}
+    <a href="{% url 'oferta' %}{% if active_slug %}?kategoria={{ active_slug }}{% endif %}" class="clear-search">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      Wyczyść
+    </a>
+    {% endif %}
+  </div>
+  <!-- Filter search dropdown (position: fixed via JS, outside overflow:auto) -->
+  <div id="filterSearchBox" class="search-box" style="position:fixed;display:none;"></div>
+</div>
+
+<!-- CONTENT -->
+<div class="content-wrap">
+  {% if category_groups %}
+    {% for cat, sub_groups in category_groups %}
+    <div class="category-block" id="cat-{{ cat.slug }}">
+      <div class="category-header">
+        <div class="category-icon">
+          {% with icon_key=cat.icon_key size=24 %}{% include "core/partials/category_icon.html" %}{% endwith %}
+        </div>
+        <h2 class="category-title">{{ cat.name }}</h2>
+        <span class="category-count">
+          {% with total_in_cat=0 %}
+            {% for _, products in sub_groups %}{{ products|length }}{% endfor %}
+          {% endwith %}
+          &nbsp;produktów
+        </span>
+      </div>
+
+      <div class="products-grid">
+        {% for subcategory, products in sub_groups %}
+          {% if subcategory %}
+          <div class="subcategory-row">
+            <span class="subcategory-label">{{ subcategory }}</span>
+          </div>
+          {% endif %}
+          {% for product in products %}
+          <a href="{{ product.get_absolute_url }}" class="product-card">
+            <div class="product-img">
+              {% if product.image %}
+              <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;">
+              {% else %}
+              {% with icon_key=cat.icon_key size=64 %}{% include "core/partials/category_icon.html" %}{% endwith %}
+              {% endif %}
+              {% if product.ce_certified %}
+              <span class="product-badge-ce">
+                {% if product.warranty_years %}{{ product.warranty_years }}L gwarancji · {% endif %}CE
+              </span>
+              {% endif %}
+              <div class="availability-dots">
+                {% if product.for_rent %}
+                <span class="avail-dot-badge dot-rent">Wynajem</span>
+                {% endif %}
+                {% if product.for_sale %}
+                <span class="avail-dot-badge dot-sale">Sprzedaż</span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="product-body">
+              {% if not active_slug %}
+              <p class="product-cat-tag">{{ cat.name }}</p>
+              {% endif %}
+              <h3 class="product-name">{{ product.name }}</h3>
+              {% if product.short_description %}
+              <p class="product-short-desc">{{ product.short_description|truncatechars:90 }}</p>
+              {% endif %}
+              {% if product.get_specs_list or product.get_features_list %}
+              <div class="product-specs">
+                {% for spec in product.get_specs_list|slice:":3" %}
+                <span class="spec-badge">{{ spec.label }}: {{ spec.value }}</span>
+                {% endfor %}
+                {% if not product.get_specs_list %}
+                  {% for feat in product.get_features_list|slice:":3" %}
+                  <span class="spec-badge">{{ feat }}</span>
+                  {% endfor %}
+                {% endif %}
+              </div>
+              {% endif %}
+              <div class="product-footer">
+                <span class="btn-detail">
+                  Szczegóły
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                </span>
+                {% if product.max_load %}
+                <span class="max-load-badge">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  {{ product.max_load }}
+                </span>
+                {% endif %}
+              </div>
+            </div>
+          </a>
+          {% endfor %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+
+  {% else %}
+  <div class="empty-state">
+    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="40" cy="40" r="30"/>
+      <path d="M30 30l20 20M50 30L30 50"/>
+    </svg>
+    <h3>Brak wyników</h3>
+    <p>
+      {% if search_q %}Nie znaleziono produktów dla „{{ search_q }}".{% else %}Brak produktów w tej kategorii.{% endif %}
+      <br><a href="{% url 'oferta' %}">Zobacz całą ofertę</a>
+    </p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- BACK TO TOP -->
+<button class="back-to-top" id="backToTop" aria-label="Do góry">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+    <path d="M12 19V5M5 12l7-7 7 7"/>
+  </svg>
+</button>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <a href="/" class="footer-logo">
+        <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
+          <path d="M9 1L17 9L9 17L1 9L9 1Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M9 5L13 9L9 13L5 9L9 5Z" fill="currentColor" opacity="0.5"/>
+        </svg>
+        MEDRENT
+      </a>
+    </div>
+    <p class="footer-copy">© 2026 MedRent – Wypożyczalnia Sprzętu Medycznego</p>
+  </div>
+</footer>
+
+<script>
+  // Hamburger
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('open');
+    mobileMenu.classList.toggle('open');
+  });
+  document.querySelectorAll('.mobile-menu a').forEach(a =>
+    a.addEventListener('click', () => mobileMenu.classList.remove('open'))
+  );
+
+  // Back to top
+  const backToTop = document.getElementById('backToTop');
+  window.addEventListener('scroll', () => {
+    backToTop.classList.toggle('visible', window.scrollY > 400);
+  });
+  backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+  // Scroll active tab into view
+  const activeTab = document.querySelector('.filter-tab.active:not(.filter-tab-all)');
+  if (activeTab) activeTab.scrollIntoView({ block: 'nearest', inline: 'center' });
+
+  // ── FILTER BAR LIVE SEARCH ──
+  (function() {
+    const input = document.getElementById('filterSearchInput');
+    const box = document.getElementById('filterSearchBox');
+    let timer;
+
+    function positionBox() {
+      const r = input.getBoundingClientRect();
+      box.style.left = r.left + 'px';
+      box.style.top = (r.bottom + 6) + 'px';
+      box.style.width = Math.max(r.width, 360) + 'px';
+    }
+
+    function openBox() { positionBox(); box.style.display = 'block'; box.classList.add('open'); }
+    function closeBox() { box.style.display = 'none'; box.classList.remove('open'); }
+
+    input.addEventListener('focus', () => { if (input.value.trim().length >= 2) openBox(); });
+    document.addEventListener('click', (e) => { if (!box.contains(e.target) && e.target !== input) closeBox(); });
+    window.addEventListener('scroll', positionBox, { passive: true });
+    window.addEventListener('resize', positionBox, { passive: true });
+
+    input.addEventListener('input', () => {
+      clearTimeout(timer);
+      const q = input.value.trim();
+      if (q.length < 2) { closeBox(); return; }
+      openBox();
+      box.innerHTML = '<div class="search-loading">Szukam…</div>';
+      timer = setTimeout(() => fetchFilter(q), 250);
+    });
+
+    input.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeBox(); input.blur(); } });
+
+    async function fetchFilter(q) {
+      try {
+        const r = await fetch('/szukaj/?q=' + encodeURIComponent(q));
+        const data = await r.json();
+        if (!data.results.length) { box.innerHTML = '<div class="search-empty">Brak wyników dla „' + q + '"</div>'; return; }
+        box.innerHTML = '<div class="search-results">' +
+          data.results.map(p => `<a href="${p.url}" class="search-result-item"><div class="search-result-thumb">${p.image ? `<img src="${p.image}" alt="">` : '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 12h6M12 9v6"/></svg>'}</div><div><div class="search-result-name">${p.name}</div><div class="search-result-cat">${p.category}</div>${p.short_description ? `<div class="search-result-desc">${p.short_description}</div>` : ''}</div></a>`).join('') +
+          `</div><div class="search-footer"><a href="/oferta/?q=${encodeURIComponent(q)}">Zobacz wszystkie wyniki (${data.total}) →</a></div>`;
+        positionBox();
+      } catch(e) { box.innerHTML = '<div class="search-empty">Błąd wyszukiwania.</div>'; }
+    }
+  })();
+
+  // ── LIVE SEARCH ──
+  (function() {
+    const toggle = document.getElementById('searchToggle');
+    const box = document.getElementById('searchBox');
+    const input = document.getElementById('navSearchInput');
+    const results = document.getElementById('searchResults');
+    let timer;
+    toggle.addEventListener('click', (e) => { e.stopPropagation(); box.classList.toggle('open'); if (box.classList.contains('open')) input.focus(); });
+    document.addEventListener('click', (e) => { if (!box.contains(e.target) && e.target !== toggle) box.classList.remove('open'); });
+    input.addEventListener('keydown', (e) => { if (e.key === 'Escape') box.classList.remove('open'); });
+    input.addEventListener('input', () => {
+      clearTimeout(timer);
+      const q = input.value.trim();
+      if (q.length < 2) { results.innerHTML = ''; return; }
+      results.innerHTML = '<div class="search-loading">Szukam…</div>';
+      timer = setTimeout(() => fetchSearch(q), 250);
+    });
+    async function fetchSearch(q) {
+      try {
+        const r = await fetch('/szukaj/?q=' + encodeURIComponent(q));
+        const data = await r.json();
+        if (!data.results.length) { results.innerHTML = '<div class="search-empty">Brak wyników dla „' + q + '"</div>'; return; }
+        results.innerHTML = data.results.map(p => `<a href="${p.url}" class="search-result-item"><div class="search-result-thumb">${p.image ? `<img src="${p.image}" alt="">` : '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 12h6M12 9v6"/></svg>'}</div><div><div class="search-result-name">${p.name}</div><div class="search-result-cat">${p.category}</div>${p.short_description ? `<div class="search-result-desc">${p.short_description}</div>` : ''}</div></a>`).join('') +
+          `<div class="search-footer"><a href="/oferta/?q=${encodeURIComponent(q)}">Zobacz wszystkie wyniki (${data.total}) →</a></div>`;
+      } catch(e) { results.innerHTML = '<div class="search-empty">Błąd wyszukiwania.</div>'; }
+    }
+  })();
+</script>
+</body>
+</html>
