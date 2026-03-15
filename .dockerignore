@@ -1,0 +1,13 @@
+.venv
+.git
+.claude
+.idea
+.env
+.env.example
+data/
+media/
+staticfiles/
+__pycache__
+*.pyc
+*.pyo
+db.sqlite3
