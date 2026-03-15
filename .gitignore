@@ -1,0 +1,16 @@
+.venv
+.claude
+.idea
+db.sqlite3
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.sqlite3
+*.db
+.env
+*.DS_Store
+data/
+media/
+staticfiles/

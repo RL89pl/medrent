@@ -1,0 +1,11 @@
+services:
+  web:
+    build: .
+    restart: always
+    env_file: .env
+    volumes:
+      - ./data/db:/app/data/db        # SQLite - persists across restarts
+      - ./data/media:/app/media       # uploaded files
+      - ./data/static:/app/staticfiles # collected static (nginx serves this)
+    ports:
+      - "127.0.0.1:8000:8000"         # only localhost, nginx proxies
