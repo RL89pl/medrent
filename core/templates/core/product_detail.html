@@ -739,7 +739,7 @@
   <div class="product-visual">
     <div class="product-image-card">
       {% if product.main_image %}
-      <img src="{{ product.main_image.url }}" alt="{{ product.name }}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;z-index:0;">
+      <img src="{{ product.main_image.url }}" alt="{{ product.name }}" style="width:100%;height:100%;object-fit:contain;position:absolute;inset:0;z-index:0;padding:16px;">
       {% else %}
       <!-- Category icon SVG -->
       {% if product.category.icon_key == 'wheelchair' %}
