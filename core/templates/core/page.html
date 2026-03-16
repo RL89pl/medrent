@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ page.title }} – LUMA</title>
+{% if page.meta_description %}<meta name="description" content="{{ page.meta_description }}">{% endif %}
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ page.title }} – LUMA">
+{% if page.meta_description %}<meta property="og:description" content="{{ page.meta_description }}">{% endif %}
+{% if site_settings.favicon %}<link rel="icon" href="{{ site_settings.favicon.url }}">
+<link rel="apple-touch-icon" href="{{ site_settings.favicon.url }}">{% endif %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --teal: #1fa896;
+    --teal-dark: #167a6d;
+    --teal-light: #e8f7f5;
+    --teal-mid: #c2ede8;
+    --navy: #12202e;
+    --text: #2c3e50;
+    --text-muted: #637381;
+    --bg: #f5f8f8;
+    --border: #e2eeec;
+    --shadow: 0 4px 24px rgba(18,32,46,0.08);
+    --radius: 14px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── NAVBAR ── */
+  #navbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    background: rgba(255,255,255,0.97);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 2px 16px rgba(18,32,46,0.06);
+    height: 68px;
+  }
+  .nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: 0.04em;
+  }
+  .nav-logo svg { color: var(--teal); }
+  .site-logo-img { height: 40px; width: auto; object-fit: contain; }
+  .site-logo-img--footer { height: 32px; }
+  .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
+  .nav-links a {
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--teal); }
+  .nav-cta {
+    background: var(--teal) !important;
+    color: #fff !important;
+    padding: 8px 20px;
+    border-radius: 6px;
+    transition: background .2s !important;
+  }
+  .nav-cta:hover { background: var(--teal-dark) !important; }
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; }
+  .hamburger span { display: block; width: 24px; height: 2px; background: var(--navy); border-radius: 2px; transition: .3s; }
+  .mobile-menu { display: none; position: fixed; top: 68px; left: 0; right: 0; background: #fff; border-bottom: 1px solid var(--border); padding: 20px 24px; z-index: 999; box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+  .mobile-menu.open { display: block; }
+  .mobile-menu a { display: block; padding: 14px 0; text-decoration: none; font-size: 0.9rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text); border-bottom: 1px solid var(--border); transition: color .2s; }
+  .mobile-menu a:last-child { border-bottom: none; }
+  .mobile-menu a:hover { color: var(--teal); }
+  @media (max-width: 800px) {
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+  }
+
+  /* ── HERO BANNER ── */
+  .page-hero {
+    margin-top: 68px;
+    background: linear-gradient(135deg, var(--navy) 0%, #1a3040 100%);
+    padding: 56px 24px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .page-hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    background: rgba(31,168,150,0.12);
+  }
+  .page-hero::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: 10%;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: rgba(31,168,150,0.07);
+  }
+  .page-hero-inner {
+    max-width: 820px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  .page-hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 16px;
+  }
+  .page-hero-eyebrow svg { opacity: 0.8; }
+  .page-hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  /* ── BREADCRUMB ── */
+  .breadcrumb-bar {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    padding: 14px 0;
+  }
+  .breadcrumb {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+  }
+  .breadcrumb a { color: var(--text-muted); text-decoration: none; transition: color .2s; }
+  .breadcrumb a:hover { color: var(--teal); }
+  .breadcrumb svg { flex-shrink: 0; opacity: 0.5; }
+  .breadcrumb .current { color: var(--text); font-weight: 500; }
+
+  /* ── CONTENT CARD ── */
+  .page-wrapper {
+    max-width: 820px;
+    margin: 48px auto 96px;
+    padding: 0 24px;
+  }
+  .page-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 48px 52px;
+    box-shadow: var(--shadow);
+  }
+
+  /* ── RICH TEXT CONTENT ── */
+  .page-content { color: var(--text); line-height: 1.85; }
+
+  .page-content h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 36px 0 14px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--teal-mid);
+  }
+  .page-content h2:first-child { margin-top: 0; }
+
+  .page-content h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 28px 0 10px;
+  }
+
+  .page-content p {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  .page-content ul, .page-content ol {
+    padding-left: 24px;
+    margin-bottom: 16px;
+  }
+  .page-content li {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    line-height: 1.7;
+  }
+  .page-content ul li::marker { color: var(--teal); }
+
+  .page-content strong { color: var(--text); font-weight: 600; }
+  .page-content em { font-style: italic; }
+
+  .page-content a {
+    color: var(--teal);
+    text-decoration: underline;
+    text-decoration-color: var(--teal-mid);
+    text-underline-offset: 3px;
+    transition: color .2s;
+  }
+  .page-content a:hover { color: var(--teal-dark); }
+
+  .page-content blockquote {
+    border-left: 3px solid var(--teal);
+    margin: 24px 0;
+    padding: 16px 20px;
+    background: var(--teal-light);
+    border-radius: 0 8px 8px 0;
+    font-size: 0.95rem;
+    color: var(--teal-dark);
+  }
+
+  .page-content hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 32px 0;
+  }
+
+  /* ── OTHER PAGES ── */
+  .other-pages {
+    margin-top: 40px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+  }
+  .other-pages-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+  .other-pages-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    list-style: none;
+  }
+  .other-pages-list a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: border-color .2s, color .2s, background .2s;
+  }
+  .other-pages-list a:hover {
+    border-color: var(--teal);
+    color: var(--teal);
+    background: var(--teal-light);
+  }
+  .other-pages-list a.active {
+    border-color: var(--teal);
+    background: var(--teal-light);
+    color: var(--teal-dark);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--navy);
+    color: rgba(255,255,255,0.5);
+    padding: 40px 0 28px;
+  }
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .footer-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 32px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 24px;
+  }
+  .footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+    margin-bottom: 8px;
+  }
+  .footer-logo svg { color: var(--teal); }
+  .footer-tagline { font-size: 0.8rem; color: rgba(255,255,255,0.35); }
+  .footer-nav-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 12px;
+  }
+  .footer-nav-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .footer-nav-list a {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.55);
+    text-decoration: none;
+    transition: color .2s;
+  }
+  .footer-nav-list a:hover { color: var(--teal); }
+  .footer-copy { font-size: 0.75rem; color: rgba(255,255,255,0.25); text-align: center; }
+
+  @media (max-width: 640px) {
+    .page-card { padding: 32px 24px; }
+    .footer-top { flex-direction: column; gap: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      {% if site_settings.logo %}
+        <img src="{{ site_settings.logo.url }}" alt="LUMA" class="site-logo-img">
+      {% else %}
+        <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+          <path d="M9 1L17 9L9 17L1 9L9 1Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M9 5L13 9L9 13L5 9L9 5Z" fill="currentColor" opacity="0.5"/>
+        </svg>
+        LUMA
+      {% endif %}
+    </a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="{% url 'oferta' %}">Oferta</a></li>
+      <li><a href="/#o-nas">O nas</a></li>
+      <li><a href="/#kontakt" class="nav-cta">Kontakt</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="/">Home</a>
+  <a href="{% url 'oferta' %}">Oferta</a>
+  <a href="/#o-nas">O nas</a>
+  <a href="/#kontakt">Kontakt</a>
+</div>
+
+<!-- HERO -->
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <p class="page-hero-eyebrow">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+      Informacje
+    </p>
+    <h1>{{ page.title }}</h1>
+  </div>
+</div>
+
+<!-- BREADCRUMB -->
+<div class="breadcrumb-bar">
+  <nav class="breadcrumb" aria-label="Nawigacja">
+    <a href="/">Strona główna</a>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+    <span class="current">{{ page.title }}</span>
+  </nav>
+</div>
+
+<!-- CONTENT -->
+<div class="page-wrapper">
+  <article class="page-card">
+    <div class="page-content">
+      {{ page.content|safe }}
+    </div>
+
+    {% if footer_pages|length > 1 %}
+    <div class="other-pages">
+      <p class="other-pages-label">Inne strony informacyjne</p>
+      <ul class="other-pages-list">
+        {% for p in footer_pages %}
+        <a href="{{ p.get_absolute_url }}" {% if p.slug == page.slug %}class="active"{% endif %}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          {{ p.title }}
+        </a>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </article>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <a href="/" class="footer-logo">
+          {% if site_settings.logo %}
+            <img src="{{ site_settings.logo.url }}" alt="LUMA" class="site-logo-img site-logo-img--footer">
+          {% else %}
+            <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
+              <path d="M9 1L17 9L9 17L1 9L9 1Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+              <path d="M9 5L13 9L9 13L5 9L9 5Z" fill="currentColor" opacity="0.5"/>
+            </svg>
+            LUMA
+          {% endif %}
+        </a>
+        <p class="footer-tagline">Wypożyczalnia Sprzętu Medycznego</p>
+      </div>
+      <div>
+        <p class="footer-nav-label">Nawigacja</p>
+        <ul class="footer-nav-list">
+          <li><a href="/">Home</a></li>
+          <li><a href="{% url 'oferta' %}">Oferta</a></li>
+          <li><a href="/#o-nas">O nas</a></li>
+          <li><a href="/#kontakt">Kontakt</a></li>
+        </ul>
+      </div>
+      {% if footer_pages %}
+      <div>
+        <p class="footer-nav-label">Informacje</p>
+        <ul class="footer-nav-list">
+          {% for p in footer_pages %}
+          <li><a href="{{ p.get_absolute_url }}">{{ p.title }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+    <p class="footer-copy">© 2026 LUMA. Wszelkie prawa zastrzeżone.</p>
+  </div>
+</footer>
+
+<script>
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  hamburger.addEventListener('click', () => mobileMenu.classList.toggle('open'));
+  document.querySelectorAll('.mobile-menu a').forEach(a => {
+    a.addEventListener('click', () => mobileMenu.classList.remove('open'));
+  });
+</script>
+</body>
+</html>

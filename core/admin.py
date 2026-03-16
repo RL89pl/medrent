@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, ProductImage, SiteSettings, ContactMessage
+from .models import Category, Product, ProductImage, SiteSettings, ContactMessage, Page
 
 
 @admin.register(ContactMessage)
@@ -55,6 +55,33 @@ class SiteSettingsAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(Page)
+class PageAdmin(admin.ModelAdmin):
+    list_display = ['title', 'slug', 'show_in_footer', 'footer_order', 'is_active']
+    list_editable = ['show_in_footer', 'footer_order', 'is_active']
+    prepopulated_fields = {'slug': ('title',)}
+    fieldsets = (
+        (None, {
+            'fields': ('title', 'slug', 'is_active'),
+        }),
+        ('Treść', {
+            'fields': ('content',),
+            'description': (
+                'Wpisz treść w HTML. Dostępne tagi: '
+                '&lt;h2&gt;, &lt;h3&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;, '
+                '&lt;strong&gt;, &lt;em&gt;, &lt;a href="..."&gt;, &lt;br&gt;.'
+            ),
+        }),
+        ('SEO', {
+            'fields': ('meta_description',),
+            'classes': ('collapse',),
+        }),
+        ('Stopka', {
+            'fields': ('show_in_footer', 'footer_order'),
+        }),
+    )
 
 
 @admin.register(Category)

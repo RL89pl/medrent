@@ -6,4 +6,5 @@ urlpatterns = [
     path('oferta/', views.oferta, name='oferta'),
     path('produkt/<slug:slug>/', views.product_detail, name='product_detail'),
     path('szukaj/', views.search_ajax, name='search_ajax'),
+    path('strony/<slug:slug>/', views.page_detail, name='page_detail'),
 ]

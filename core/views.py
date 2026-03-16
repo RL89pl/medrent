@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.db.models import Q
-from .models import Product, Category, SiteSettings, ContactMessage
+from .models import Product, Category, SiteSettings, ContactMessage, Page
 
 
 def _build_category_groups(qs):
@@ -101,6 +101,14 @@ def product_detail(request, slug):
         'sent': sent,
         'errors': errors,
         'post': request.POST,
+        'site_settings': SiteSettings.get(),
+    })
+
+
+def page_detail(request, slug):
+    page = get_object_or_404(Page, slug=slug, is_active=True)
+    return render(request, 'core/page.html', {
+        'page': page,
         'site_settings': SiteSettings.get(),
     })
 

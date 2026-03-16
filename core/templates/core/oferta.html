@@ -571,6 +571,13 @@
         {% endif %}
       </a>
     </div>
+    {% if footer_pages %}
+    <ul style="list-style:none;display:flex;gap:20px;flex-wrap:wrap;">
+      {% for p in footer_pages %}
+      <li><a href="{{ p.get_absolute_url }}" style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.5);text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#1fa896'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">{{ p.title }}</a></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
     <p class="footer-copy">© 2026 LUMA – Wypożyczalnia Sprzętu Medycznego</p>
   </div>
 </footer>

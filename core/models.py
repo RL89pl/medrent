@@ -205,6 +205,30 @@ class Product(models.Model):
         return reverse('product_detail', kwargs={'slug': self.slug})
 
 
+class Page(models.Model):
+    title = models.CharField(max_length=200, verbose_name='Tytuł')
+    slug = models.SlugField(unique=True, verbose_name='Slug (URL)',
+                            help_text='Np. "polityka-prywatnosci" → /strony/polityka-prywatnosci/')
+    content = models.TextField(verbose_name='Treść (HTML)',
+                               help_text='Możesz używać HTML: <h2>, <p>, <ul>, <li>, <strong>, <a href="...">, itd.')
+    meta_description = models.CharField(max_length=300, blank=True, verbose_name='Meta description (SEO)')
+    show_in_footer = models.BooleanField(default=True, verbose_name='Pokaż w stopce')
+    footer_order = models.PositiveSmallIntegerField(default=0, verbose_name='Kolejność w stopce')
+    is_active = models.BooleanField(default=True, verbose_name='Aktywna')
+
+    class Meta:
+        ordering = ['footer_order', 'title']
+        verbose_name = 'Strona informacyjna'
+        verbose_name_plural = 'Strony informacyjne'
+
+    def __str__(self):
+        return self.title
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('page_detail', kwargs={'slug': self.slug})
+
+
 class ProductImage(models.Model):
     product = models.ForeignKey(
         Product, on_delete=models.CASCADE,

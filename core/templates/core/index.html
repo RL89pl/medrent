@@ -1193,6 +1193,13 @@
       <li><a href="#o-nas">O nas</a></li>
       <li><a href="#kontakt">Kontakt</a></li>
     </ul>
+    {% if footer_pages %}
+    <ul class="footer-links">
+      {% for p in footer_pages %}
+      <li><a href="{{ p.get_absolute_url }}">{{ p.title }}</a></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
     <p class="footer-copy">© 2026 LUMA. Wszelkie prawa zastrzeżone.</p>
   </div>
 </footer>
