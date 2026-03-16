@@ -76,8 +76,12 @@ class SiteSettings(models.Model):
     about_image = models.ImageField(upload_to='about/', blank=True, null=True, verbose_name='O nas – zdjęcie')
 
     # ── KONTAKT ───────────────────────────────────────────────────────────────
-    contact_phone        = models.CharField(max_length=30,  default='+48 000 000 000',       verbose_name='Telefon')
-    contact_phone_hours  = models.CharField(max_length=60,  default='Pon–Pt: 8:00–18:00',   verbose_name='Godziny telefoniczne')
+    contact_phone        = models.CharField(max_length=30,  default='+48 000 000 000',       verbose_name='Telefon 1')
+    contact_phone_hours  = models.CharField(max_length=60,  default='Pon–Pt: 8:00–18:00',   verbose_name='Telefon 1 – godziny')
+    contact_phone2       = models.CharField(max_length=30,  blank=True,                      verbose_name='Telefon 2')
+    contact_phone2_hours = models.CharField(max_length=60,  blank=True,                      verbose_name='Telefon 2 – godziny')
+    contact_phone3       = models.CharField(max_length=30,  blank=True,                      verbose_name='Telefon 3')
+    contact_phone3_hours = models.CharField(max_length=60,  blank=True,                      verbose_name='Telefon 3 – godziny')
     contact_email        = models.EmailField(               default='kontakt@luma.pl',       verbose_name='Email')
     contact_email_note   = models.CharField(max_length=60,  default='Odpowiadamy w 24h',    verbose_name='Nota przy emailu')
     contact_address      = models.CharField(max_length=200, blank=True,                     verbose_name='Adres')

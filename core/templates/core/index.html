@@ -1037,6 +1037,14 @@
           <h4>Telefon</h4>
           <a href="tel:{{ site_settings.contact_phone }}">{{ site_settings.contact_phone }}</a>
           <p>{{ site_settings.contact_phone_hours }}</p>
+          {% if site_settings.contact_phone2 %}
+          <a href="tel:{{ site_settings.contact_phone2 }}" style="margin-top:8px;display:block;">{{ site_settings.contact_phone2 }}</a>
+          {% if site_settings.contact_phone2_hours %}<p>{{ site_settings.contact_phone2_hours }}</p>{% endif %}
+          {% endif %}
+          {% if site_settings.contact_phone3 %}
+          <a href="tel:{{ site_settings.contact_phone3 }}" style="margin-top:8px;display:block;">{{ site_settings.contact_phone3 }}</a>
+          {% if site_settings.contact_phone3_hours %}<p>{{ site_settings.contact_phone3_hours }}</p>{% endif %}
+          {% endif %}
         </div>
         <div class="contact-card reveal reveal-delay-1">
           <div class="contact-icon">

@@ -44,6 +44,8 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         ('Kontakt', {
             'fields': (
                 'contact_phone', 'contact_phone_hours',
+                'contact_phone2', 'contact_phone2_hours',
+                'contact_phone3', 'contact_phone3_hours',
                 'contact_email', 'contact_email_note',
                 'contact_address', 'contact_address_note',
             ),
