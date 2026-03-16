@@ -215,6 +215,32 @@
   .badge-warranty { background: var(--teal); color: #fff; }
   .badge-custom { background: var(--navy); color: #fff; }
 
+  /* ── GALLERY THUMBNAILS ── */
+  .gallery-thumbs {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .gallery-thumb {
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color .2s, transform .15s;
+    background: var(--teal-light);
+    flex-shrink: 0;
+  }
+  .gallery-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .gallery-thumb:hover { border-color: var(--teal); transform: translateY(-1px); }
+  .gallery-thumb.active { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(31,168,150,0.25); }
+
   .product-actions-mini {
     display: flex;
     gap: 10px;
@@ -739,7 +765,7 @@
   <div class="product-visual">
     <div class="product-image-card">
       {% if product.main_image %}
-      <img src="{{ product.main_image.url }}" alt="{{ product.name }}" style="width:100%;height:100%;object-fit:contain;position:absolute;inset:0;z-index:0;padding:16px;">
+      <img id="mainProductImage" src="{{ product.main_image.url }}" alt="{{ product.name }}" style="width:100%;height:100%;object-fit:contain;position:absolute;inset:0;z-index:0;padding:16px;transition:opacity .2s;">
       {% else %}
       <!-- Category icon SVG -->
       {% if product.category.icon_key == 'wheelchair' %}
@@ -851,6 +877,19 @@
         {% endif %}
       </div>
     </div>
+
+    <!-- Gallery thumbnails -->
+    {% with all_images=product.images.all %}
+    {% if all_images.count > 1 %}
+    <div class="gallery-thumbs" id="galleryThumbs">
+      {% for img in all_images %}
+      <div class="gallery-thumb {% if img.is_main %}active{% endif %}" data-src="{{ img.image.url }}" onclick="gallerySelect(this)">
+        <img src="{{ img.image.url }}" alt="{{ product.name }}">
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
 
     <!-- Availability tags -->
     <div class="product-actions-mini">
@@ -1069,6 +1108,18 @@
 </footer>
 
 <script>
+  function gallerySelect(thumb) {
+    const mainImg = document.getElementById('mainProductImage');
+    if (!mainImg) return;
+    mainImg.style.opacity = '0';
+    setTimeout(() => {
+      mainImg.src = thumb.dataset.src;
+      mainImg.style.opacity = '1';
+    }, 150);
+    document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+    thumb.classList.add('active');
+  }
+
   const hamburger = document.getElementById('hamburger');
   const mobileMenu = document.getElementById('mobileMenu');
   hamburger.addEventListener('click', () => {
