@@ -21,11 +21,14 @@ def _build_category_groups(qs):
 
 
 def home(request):
+    from blog.models import Post as BlogPost
     categories = Category.objects.all()
     settings = SiteSettings.get()
+    recent_posts = BlogPost.objects.filter(status='published').select_related('category')[:3]
     return render(request, 'core/index.html', {
-        'categories': categories,
+        'categories':   categories,
         'site_settings': settings,
+        'recent_posts': recent_posts,
     })
 
 
