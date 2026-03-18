@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ post.effective_meta_title }} – Blog LUMA</title>
+<meta name="description" content="{{ post.effective_meta_description }}">
+<meta name="author" content="{{ post.author }}">
+<link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ post.get_absolute_url }}">
+<!-- Open Graph -->
+<meta property="og:type"        content="article">
+<meta property="og:title"       content="{{ post.effective_meta_title }}">
+<meta property="og:description" content="{{ post.effective_meta_description }}">
+<meta property="og:url"         content="{{ request.scheme }}://{{ request.get_host }}{{ post.get_absolute_url }}">
+{% if post.effective_og_image %}
+<meta property="og:image"       content="{{ request.scheme }}://{{ request.get_host }}{{ post.effective_og_image.url }}">
+{% elif site_settings.og_image %}
+<meta property="og:image"       content="{{ request.scheme }}://{{ request.get_host }}{{ site_settings.og_image.url }}">
+{% endif %}
+{% if post.published_at %}<meta property="article:published_time" content="{{ post.published_at|date:'c' }}">{% endif %}
+<meta property="article:modified_time" content="{{ post.updated_at|date:'c' }}">
+{% if post.author %}<meta property="article:author" content="{{ post.author }}">{% endif %}
+<!-- Twitter Card -->
+<meta name="twitter:card"        content="summary_large_image">
+<meta name="twitter:title"       content="{{ post.effective_meta_title }}">
+<meta name="twitter:description" content="{{ post.effective_meta_description }}">
+{% if post.effective_og_image %}
+<meta name="twitter:image"       content="{{ request.scheme }}://{{ request.get_host }}{{ post.effective_og_image.url }}">
+{% endif %}
+<!-- Favicon -->
+{% if site_settings.favicon %}
+<link rel="icon" href="{{ site_settings.favicon.url }}">
+<link rel="apple-touch-icon" href="{{ site_settings.favicon.url }}">
+{% endif %}
+<!-- JSON-LD: Article structured data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "{{ post.title|escapejs }}",
+  "description": "{{ post.effective_meta_description|escapejs }}",
+  "author": {
+    "@type": "Person",
+    "name": "{{ post.author|escapejs }}"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "LUMA Wypożyczalnia Sprzętu Medycznego",
+    "url": "{{ request.scheme }}://{{ request.get_host }}"
+  },
+  {% if post.published_at %}"datePublished": "{{ post.published_at|date:'c' }}",{% endif %}
+  "dateModified": "{{ post.updated_at|date:'c' }}",
+  "url": "{{ request.scheme }}://{{ request.get_host }}{{ post.get_absolute_url }}"
+  {% if post.cover_image %},"image": "{{ request.scheme }}://{{ request.get_host }}{{ post.cover_image.url }}"{% endif %}
+}
+</script>
+<!-- JSON-LD: BreadcrumbList -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home",  "item": "{{ request.scheme }}://{{ request.get_host }}/"},
+    {"@type": "ListItem", "position": 2, "name": "Blog",  "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'blog_list' %}"},
+    {"@type": "ListItem", "position": 3, "name": "{{ post.title|escapejs }}", "item": "{{ request.scheme }}://{{ request.get_host }}{{ post.get_absolute_url }}"}
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --teal: #1fa896; --teal-dark: #167a6d; --teal-light: #e8f7f5; --teal-mid: #c2ede8;
+    --navy: #12202e; --text: #2c3e50; --text-muted: #637381;
+    --bg: #f5f8f8; --bg-white: #ffffff; --border: #e2eeec;
+    --shadow: 0 4px 24px rgba(18,32,46,0.08); --shadow-hover: 0 12px 40px rgba(18,32,46,0.15);
+    --radius: 12px;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'DM Sans', sans-serif; color: var(--text); background: var(--bg); line-height: 1.6; overflow-x: hidden; }
+
+  /* ── NAVBAR ── */
+  #navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(255,255,255,0.97); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); box-shadow: 0 2px 16px rgba(18,32,46,0.06); height: 68px; }
+  .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 100%; display: flex; align-items: center; justify-content: space-between; }
+  .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; color: var(--navy); letter-spacing: 0.04em; }
+  .nav-logo svg { color: var(--teal); }
+  .site-logo-img { height: 40px; width: auto; object-fit: contain; }
+  .site-logo-img--footer { height: 32px; }
+  .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
+  .nav-links a { text-decoration: none; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.12em; color: var(--text-muted); text-transform: uppercase; transition: color .2s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--teal); }
+  .nav-cta { background: var(--teal) !important; color: #fff !important; padding: 8px 20px; border-radius: 6px; }
+  .nav-cta:hover { background: var(--teal-dark) !important; }
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; }
+  .hamburger span { display: block; width: 24px; height: 2px; background: var(--navy); border-radius: 2px; transition: .3s; }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .mobile-menu { display: none; position: fixed; top: 68px; left: 0; right: 0; background: #fff; border-bottom: 1px solid var(--border); padding: 20px 24px; z-index: 999; box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+  .mobile-menu.open { display: block; }
+  .mobile-menu a { display: block; padding: 14px 0; text-decoration: none; font-size: 0.9rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text); border-bottom: 1px solid var(--border); transition: color .2s; }
+  .mobile-menu a:last-child { border-bottom: none; }
+  .mobile-menu a:hover { color: var(--teal); }
+
+  /* ── PROGRESS BAR ── */
+  #reading-progress {
+    position: fixed;
+    top: 68px;
+    left: 0;
+    height: 3px;
+    width: 0%;
+    background: linear-gradient(90deg, var(--teal) 0%, var(--teal-dark) 100%);
+    z-index: 1001;
+    transition: width .1s linear;
+  }
+
+  /* ── ARTICLE HEADER ── */
+  .article-header {
+    margin-top: 68px;
+    background: linear-gradient(135deg, var(--navy) 0%, #1a3d54 60%, var(--teal-dark) 100%);
+    padding: 56px 0 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .article-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 80% 50%, rgba(31,168,150,0.2) 0%, transparent 60%);
+  }
+  .article-header .container { max-width: 860px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+  .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: rgba(255,255,255,0.5); margin-bottom: 28px; flex-wrap: wrap; }
+  .breadcrumb a { color: rgba(255,255,255,0.5); text-decoration: none; transition: color .2s; }
+  .breadcrumb a:hover { color: rgba(255,255,255,0.9); }
+  .breadcrumb svg { opacity: 0.4; flex-shrink: 0; }
+  .breadcrumb .current { color: rgba(255,255,255,0.85); }
+  .article-eyebrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+  .article-cat { display: inline-block; background: var(--teal); color: #fff; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 14px; border-radius: 20px; text-decoration: none; transition: background .2s; }
+  .article-cat:hover { background: var(--teal-dark); }
+  .article-h1 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 700; color: #fff; line-height: 1.2; margin-bottom: 20px; }
+  .article-excerpt { font-size: 1.05rem; color: rgba(255,255,255,0.7); line-height: 1.7; margin-bottom: 28px; }
+  .article-meta { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; font-size: 0.78rem; color: rgba(255,255,255,0.55); padding-bottom: 36px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .article-meta-item { display: inline-flex; align-items: center; gap: 6px; }
+  .article-meta-item svg { opacity: 0.7; flex-shrink: 0; }
+
+  /* ── COVER IMAGE ── */
+  .article-cover {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 2;
+    transform: translateY(0);
+  }
+  .article-cover img {
+    width: 100%;
+    max-height: 480px;
+    object-fit: cover;
+    border-radius: var(--radius) var(--radius) 0 0;
+    display: block;
+  }
+
+  /* ── ARTICLE LAYOUT ── */
+  .article-wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px 96px;
+  }
+
+  /* ── ARTICLE CONTENT ── */
+  .article-body {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    padding: 48px 56px;
+    font-size: 1rem;
+    line-height: 1.85;
+    color: var(--text);
+    margin-bottom: 40px;
+  }
+  .article-body h2 { font-family: 'Playfair Display', serif; font-size: 1.55rem; font-weight: 700; color: var(--navy); margin: 2.2em 0 0.7em; line-height: 1.3; }
+  .article-body h2:first-child { margin-top: 0; }
+  .article-body h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 600; color: var(--navy); margin: 1.8em 0 0.6em; }
+  .article-body p { margin-bottom: 1.4em; }
+  .article-body p:last-child { margin-bottom: 0; }
+  .article-body ul, .article-body ol { margin: 0 0 1.4em 1.5em; }
+  .article-body li { margin-bottom: 0.5em; }
+  .article-body strong { font-weight: 600; color: var(--navy); }
+  .article-body em { font-style: italic; }
+  .article-body a { color: var(--teal); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; transition: color .2s; }
+  .article-body a:hover { color: var(--teal-dark); }
+  .article-body blockquote {
+    border-left: 4px solid var(--teal);
+    margin: 2em 0;
+    padding: 16px 24px;
+    background: var(--teal-light);
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+    color: var(--navy);
+    font-size: 1.05rem;
+  }
+  .article-body blockquote p { margin-bottom: 0; }
+  .article-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 1.5em 0;
+    display: block;
+  }
+  .article-body pre {
+    background: #1e2d3d;
+    color: #e2eeec;
+    padding: 20px 24px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    margin: 1.5em 0;
+  }
+  .article-body code { background: var(--teal-light); color: var(--teal-dark); padding: 1px 6px; border-radius: 4px; font-size: 0.9em; }
+  .article-body pre code { background: none; color: inherit; padding: 0; }
+  .article-body hr { border: none; border-top: 2px solid var(--border); margin: 2.5em 0; }
+  .article-body table { width: 100%; border-collapse: collapse; margin: 1.5em 0; font-size: 0.9rem; }
+  .article-body th { background: var(--teal-light); color: var(--navy); font-weight: 600; padding: 10px 14px; border: 1px solid var(--border); text-align: left; }
+  .article-body td { padding: 9px 14px; border: 1px solid var(--border); }
+  .article-body tr:nth-child(even) td { background: var(--bg); }
+
+  /* ── ARTICLE FOOTER (tags + share) ── */
+  .article-footer-bar {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 56px;
+  }
+  .article-tags { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .article-tags-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+  .article-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 600; padding: 4px 12px; border-radius: 20px; background: var(--teal-light); color: var(--teal-dark); border: 1px solid var(--teal-mid); text-decoration: none; transition: background .2s; }
+  .article-tag:hover { background: var(--teal-mid); }
+  .share-buttons { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .share-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+  .share-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border); background: #fff; color: var(--text-muted); text-decoration: none; transition: all .2s; cursor: pointer; }
+  .share-btn:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-light); }
+  .copy-success { display: none; font-size: 0.72rem; color: var(--teal); font-weight: 600; }
+
+  /* ── AUTHOR BOX ── */
+  .author-box {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 56px;
+  }
+  .author-avatar {
+    width: 56px; height: 56px;
+    background: var(--teal-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--teal);
+    flex-shrink: 0;
+  }
+  .author-name { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; color: var(--navy); margin-bottom: 2px; }
+  .author-role { font-size: 0.78rem; color: var(--text-muted); }
+
+  /* ── RELATED POSTS ── */
+  .related-section { margin-top: 0; }
+  .related-heading { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--navy); margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .related-heading::after { content: ''; flex: 1; height: 2px; background: var(--border); }
+  .related-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .related-card { background: var(--bg-white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; text-decoration: none; color: inherit; display: flex; flex-direction: column; transition: transform .3s, box-shadow .3s, border-color .3s; }
+  .related-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); border-color: var(--teal-mid); }
+  .related-cover { height: 140px; background: linear-gradient(135deg, var(--teal-light) 0%, var(--teal-mid) 100%); overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; }
+  .related-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .related-cover svg { opacity: 0.3; color: var(--teal-dark); }
+  .related-body { padding: 16px 18px; flex: 1; display: flex; flex-direction: column; }
+  .related-cat { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); margin-bottom: 6px; }
+  .related-title { font-family: 'Playfair Display', serif; font-size: 0.95rem; font-weight: 700; color: var(--navy); line-height: 1.3; margin-bottom: 8px; }
+  .related-date { font-size: 0.7rem; color: var(--text-muted); margin-top: auto; }
+
+  /* ── BACK TO TOP ── */
+  .back-to-top { position: fixed; bottom: 28px; right: 28px; width: 44px; height: 44px; background: var(--teal); color: #fff; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(31,168,150,0.4); opacity: 0; transition: opacity .3s, transform .3s; transform: translateY(10px); z-index: 500; }
+  .back-to-top.visible { opacity: 1; transform: translateY(0); }
+  .back-to-top:hover { background: var(--teal-dark); }
+
+  /* ── FOOTER ── */
+  footer { background: var(--navy); color: rgba(255,255,255,0.5); padding: 40px 0 28px; }
+  .footer-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .footer-logo { display: flex; align-items: center; gap: 8px; font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: #fff; text-decoration: none; }
+  .footer-logo svg { color: var(--teal); }
+  .footer-copy { font-size: 0.75rem; color: rgba(255,255,255,0.3); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+    .related-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 700px) {
+    .article-body { padding: 32px 24px; }
+    .article-footer-bar { flex-direction: column; align-items: flex-start; }
+    .related-grid { grid-template-columns: 1fr; }
+    .author-box { flex-direction: column; text-align: center; }
+  }
+  @media (max-width: 500px) {
+    .article-meta { gap: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="reading-progress"></div>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      {% if site_settings.logo %}
+        <img src="{{ site_settings.logo.url }}" alt="LUMA" class="site-logo-img">
+      {% else %}
+        <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+          <path d="M9 1L17 9L9 17L1 9L9 1Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M9 5L13 9L9 13L5 9L9 5Z" fill="currentColor" opacity="0.5"/>
+        </svg>
+        LUMA
+      {% endif %}
+    </a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="{% url 'oferta' %}">Oferta</a></li>
+      <li><a href="{% url 'blog_list' %}" class="active">Blog</a></li>
+      <li><a href="/#o-nas">O nas</a></li>
+      <li><a href="/#kontakt" class="nav-cta">Kontakt</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="/">Home</a>
+  <a href="{% url 'oferta' %}">Oferta</a>
+  <a href="{% url 'blog_list' %}">Blog</a>
+  <a href="/#o-nas">O nas</a>
+  <a href="/#kontakt">Kontakt</a>
+</div>
+
+<!-- ARTICLE HEADER -->
+<header class="article-header">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Strona główna</a>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      <a href="{% url 'blog_list' %}">Blog</a>
+      {% if post.category %}
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      <a href="{{ post.category.get_absolute_url }}">{{ post.category.name }}</a>
+      {% endif %}
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      <span class="current">{{ post.title|truncatechars:40 }}</span>
+    </nav>
+
+    <div class="article-eyebrow">
+      {% if post.category %}
+        <a href="{{ post.category.get_absolute_url }}" class="article-cat">{{ post.category.name }}</a>
+      {% endif %}
+      {% if post.is_featured %}
+        <span style="display:inline-flex;align-items:center;gap:4px;font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.5);">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          Wyróżniony
+        </span>
+      {% endif %}
+    </div>
+
+    <h1 class="article-h1">{{ post.title }}</h1>
+
+    {% if post.excerpt %}
+    <p class="article-excerpt">{{ post.excerpt }}</p>
+    {% endif %}
+
+    <div class="article-meta">
+      <span class="article-meta-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        {{ post.author }}
+      </span>
+      {% if post.published_at %}
+      <span class="article-meta-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        {{ post.published_at|date:"d.m.Y" }}
+      </span>
+      {% endif %}
+      <span class="article-meta-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        {{ post.reading_time }} min czytania
+      </span>
+    </div>
+  </div>
+
+  {% if post.cover_image %}
+  <div class="article-cover">
+    <img src="{{ post.cover_image.url }}" alt="{{ post.cover_alt|default:post.title }}">
+  </div>
+  {% endif %}
+</header>
+
+<!-- ARTICLE BODY -->
+<div class="article-wrap">
+  <article class="article-body" {% if not post.cover_image %}style="border-top:1px solid var(--border);border-radius:var(--radius);margin-top:40px;"{% endif %}>
+    {{ post.content|safe }}
+  </article>
+
+  <!-- TAGS + SHARE -->
+  <div class="article-footer-bar">
+    <div class="article-tags">
+      {% if post.tags.all %}
+        <span class="article-tags-label">Tagi:</span>
+        {% for tag in post.tags.all %}
+          <a href="{{ tag.get_absolute_url }}" class="article-tag">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            {{ tag.name }}
+          </a>
+        {% endfor %}
+      {% endif %}
+    </div>
+    <div class="share-buttons">
+      <span class="share-label">Udostępnij:</span>
+      <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.scheme }}://{{ request.get_host }}{{ post.get_absolute_url }}"
+         target="_blank" rel="noopener" class="share-btn" title="Facebook">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+      </a>
+      <a href="https://twitter.com/intent/tweet?url={{ request.scheme }}://{{ request.get_host }}{{ post.get_absolute_url }}&text={{ post.title|urlencode }}"
+         target="_blank" rel="noopener" class="share-btn" title="Twitter / X">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4l16 16M4 20L20 4"/><path d="M20 4l-4.5 4.5M4 20l4.5-4.5" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      </a>
+      <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ request.scheme }}://{{ request.get_host }}{{ post.get_absolute_url }}&title={{ post.title|urlencode }}"
+         target="_blank" rel="noopener" class="share-btn" title="LinkedIn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+      </a>
+      <button class="share-btn" id="copyLinkBtn" title="Kopiuj link">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+      </button>
+      <span class="copy-success" id="copySuccess">Skopiowano!</span>
+    </div>
+  </div>
+
+  <!-- AUTHOR BOX -->
+  <div class="author-box">
+    <div class="author-avatar">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
+    <div>
+      <div class="author-name">{{ post.author }}</div>
+      <div class="author-role">Autor – Blog LUMA Wypożyczalnia Sprzętu Medycznego</div>
+    </div>
+  </div>
+
+  <!-- RELATED POSTS -->
+  {% if related %}
+  <div class="related-section">
+    <h2 class="related-heading">Podobne artykuły</h2>
+    <div class="related-grid">
+      {% for p in related %}
+      <a href="{{ p.get_absolute_url }}" class="related-card">
+        <div class="related-cover">
+          {% if p.cover_image %}
+            <img src="{{ p.cover_image.url }}" alt="{{ p.cover_alt|default:p.title }}" loading="lazy">
+          {% else %}
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+          {% endif %}
+        </div>
+        <div class="related-body">
+          {% if p.category %}<div class="related-cat">{{ p.category.name }}</div>{% endif %}
+          <h3 class="related-title">{{ p.title }}</h3>
+          <div class="related-date">{{ p.published_at|date:"d.m.Y" }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div style="text-align:center;margin-top:48px;">
+    <a href="{% url 'blog_list' %}" style="display:inline-flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal);text-decoration:none;padding:12px 24px;border:2px solid var(--teal);border-radius:8px;transition:all .2s;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Wróć do bloga
+    </a>
+  </div>
+</div>
+
+<!-- BACK TO TOP -->
+<button class="back-to-top" id="backToTop" aria-label="Wróć na górę">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 15l-6-6-6 6"/></svg>
+</button>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <a href="/" class="footer-logo">
+      {% if site_settings.logo %}
+        <img src="{{ site_settings.logo.url }}" alt="LUMA" class="site-logo-img site-logo-img--footer">
+      {% else %}
+        <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+          <path d="M9 1L17 9L9 17L1 9L9 1Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M9 5L13 9L9 13L5 9L9 5Z" fill="currentColor" opacity="0.5"/>
+        </svg>
+        LUMA
+      {% endif %}
+    </a>
+    {% if footer_pages %}
+    <ul style="list-style:none;display:flex;gap:20px;flex-wrap:wrap;">
+      {% for p in footer_pages %}
+      <li><a href="{{ p.get_absolute_url }}" style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.5);text-decoration:none;transition:color .2s;">{{ p.title }}</a></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    <p class="footer-copy">© 2026 LUMA – Wypożyczalnia Sprzętu Medycznego</p>
+  </div>
+</footer>
+
+<script>
+  // Hamburger
+  const hamburger  = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('open');
+    mobileMenu.classList.toggle('open');
+  });
+
+  // Reading progress bar
+  const progressBar = document.getElementById('reading-progress');
+  const article = document.querySelector('.article-body');
+  function updateProgress() {
+    if (!article) return;
+    const rect  = article.getBoundingClientRect();
+    const total = article.offsetHeight - window.innerHeight;
+    const scrolled = Math.max(0, -rect.top);
+    const pct = total > 0 ? Math.min(100, (scrolled / total) * 100) : 0;
+    progressBar.style.width = pct + '%';
+  }
+  window.addEventListener('scroll', updateProgress, { passive: true });
+
+  // Back to top
+  const backToTop = document.getElementById('backToTop');
+  window.addEventListener('scroll', () => {
+    backToTop.classList.toggle('visible', window.scrollY > 400);
+  }, { passive: true });
+  backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+  // Copy link
+  document.getElementById('copyLinkBtn').addEventListener('click', () => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      const msg = document.getElementById('copySuccess');
+      msg.style.display = 'inline';
+      setTimeout(() => { msg.style.display = 'none'; }, 2000);
+    });
+  });
+</script>
+</body>
+</html>

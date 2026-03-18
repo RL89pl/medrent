@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% if active_category %}{{ active_category.name }} – {% elif active_tag %}#{{ active_tag.name }} – {% elif search_q %}Wyniki: „{{ search_q }}" – {% endif %}Blog – LUMA</title>
+<meta name="description" content="{% if active_category %}Artykuły z kategorii {{ active_category.name }}{% elif search_q %}Wyniki wyszukiwania: {{ search_q }}{% else %}Porady, aktualności i wiedza o sprzęcie rehabilitacyjnym – blog LUMA{% endif %}">
+<meta name="robots" content="{% if search_q %}noindex,follow{% else %}index,follow{% endif %}">
+<link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{% url 'blog_list' %}{% if active_cat_slug %}?kategoria={{ active_cat_slug }}{% endif %}">
+<!-- Open Graph -->
+<meta property="og:type"        content="website">
+<meta property="og:title"       content="Blog – LUMA Wypożyczalnia Sprzętu Medycznego">
+<meta property="og:description" content="Porady, aktualności i wiedza o sprzęcie rehabilitacyjnym">
+<meta property="og:url"         content="{{ request.scheme }}://{{ request.get_host }}{% url 'blog_list' %}">
+{% if site_settings.og_image %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ site_settings.og_image.url }}">{% endif %}
+<!-- Favicon -->
+{% if site_settings.favicon %}
+<link rel="icon" href="{{ site_settings.favicon.url }}">
+<link rel="apple-touch-icon" href="{{ site_settings.favicon.url }}">
+{% endif %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --teal: #1fa896; --teal-dark: #167a6d; --teal-light: #e8f7f5; --teal-mid: #c2ede8;
+    --navy: #12202e; --text: #2c3e50; --text-muted: #637381;
+    --bg: #f5f8f8; --bg-white: #ffffff; --border: #e2eeec;
+    --shadow: 0 4px 24px rgba(18,32,46,0.08); --shadow-hover: 0 12px 40px rgba(18,32,46,0.15);
+    --radius: 12px;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'DM Sans', sans-serif; color: var(--text); background: var(--bg); line-height: 1.6; overflow-x: hidden; }
+
+  /* ── NAVBAR ── */
+  #navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(255,255,255,0.97); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); box-shadow: 0 2px 16px rgba(18,32,46,0.06); height: 68px; }
+  .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 100%; display: flex; align-items: center; justify-content: space-between; }
+  .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; color: var(--navy); letter-spacing: 0.04em; }
+  .nav-logo svg { color: var(--teal); }
+  .site-logo-img { height: 40px; width: auto; object-fit: contain; }
+  .site-logo-img--footer { height: 32px; }
+  .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
+  .nav-links a { text-decoration: none; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.12em; color: var(--text-muted); text-transform: uppercase; transition: color .2s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--teal); }
+  .nav-cta { background: var(--teal) !important; color: #fff !important; padding: 8px 20px; border-radius: 6px; }
+  .nav-cta:hover { background: var(--teal-dark) !important; }
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; }
+  .hamburger span { display: block; width: 24px; height: 2px; background: var(--navy); border-radius: 2px; transition: .3s; }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .mobile-menu { display: none; position: fixed; top: 68px; left: 0; right: 0; background: #fff; border-bottom: 1px solid var(--border); padding: 20px 24px; z-index: 999; box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+  .mobile-menu.open { display: block; }
+  .mobile-menu a { display: block; padding: 14px 0; text-decoration: none; font-size: 0.9rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text); border-bottom: 1px solid var(--border); transition: color .2s; }
+  .mobile-menu a:last-child { border-bottom: none; }
+  .mobile-menu a:hover { color: var(--teal); }
+
+  /* ── PAGE HERO ── */
+  .page-hero {
+    margin-top: 68px;
+    background: linear-gradient(135deg, var(--navy) 0%, #1a3d54 60%, var(--teal-dark) 100%);
+    padding: 56px 0 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .page-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 80% 50%, rgba(31,168,150,0.2) 0%, transparent 60%);
+  }
+  .page-hero .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+  .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: rgba(255,255,255,0.5); margin-bottom: 20px; flex-wrap: wrap; }
+  .breadcrumb a { color: rgba(255,255,255,0.5); text-decoration: none; transition: color .2s; }
+  .breadcrumb a:hover { color: rgba(255,255,255,0.9); }
+  .breadcrumb svg { opacity: 0.4; flex-shrink: 0; }
+  .breadcrumb .current { color: rgba(255,255,255,0.85); }
+  .hero-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .hero-text h1 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 700; color: #fff; line-height: 1.2; }
+  .hero-text p { font-size: 0.95rem; color: rgba(255,255,255,0.65); margin-top: 10px; max-width: 480px; }
+  .hero-count { font-size: 0.78rem; font-weight: 600; color: rgba(255,255,255,0.5); letter-spacing: 0.08em; white-space: nowrap; }
+  .hero-count span { font-size: 2rem; font-family: 'Playfair Display', serif; font-weight: 700; color: var(--teal); display: block; line-height: 1; }
+
+  /* ── FILTERS BAR ── */
+  .filters-bar {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 68px;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(18,32,46,0.04);
+  }
+  .filters-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .filters-inner::-webkit-scrollbar { display: none; }
+  .search-form { display: flex; align-items: center; gap: 0; border-right: 1px solid var(--border); padding-right: 16px; margin-right: 16px; flex-shrink: 0; }
+  .search-input { border: none; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--text); background: transparent; width: 200px; padding: 18px 0; }
+  .search-input::placeholder { color: #b0bec5; }
+  .search-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; padding: 4px; transition: color .2s; }
+  .search-btn:hover { color: var(--teal); }
+  .filter-tabs { display: flex; align-items: center; gap: 4px; padding: 10px 0; flex-shrink: 0; }
+  .filter-tab { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; white-space: nowrap; text-decoration: none; color: var(--text-muted); border: 1.5px solid transparent; transition: all .2s; }
+  .filter-tab:hover { color: var(--teal); background: var(--teal-light); }
+  .filter-tab.active { color: var(--teal-dark); background: var(--teal-light); border-color: var(--teal-mid); }
+  .filter-tab-all { color: var(--navy); }
+  .filter-tab-all.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .filter-tag-active { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; background: var(--teal-light); color: var(--teal-dark); border: 1.5px solid var(--teal-mid); text-decoration: none; white-space: nowrap; flex-shrink: 0; margin-left: 8px; }
+  .clear-search { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 600; color: #e74c3c; text-decoration: none; padding: 6px 12px; border-radius: 6px; border: 1.5px solid #fcdcd9; background: #fef5f4; white-space: nowrap; flex-shrink: 0; margin-left: 8px; transition: background .2s; }
+  .clear-search:hover { background: #fcdcd9; }
+
+  /* ── CONTENT WRAPPER ── */
+  .content-wrap { max-width: 1200px; margin: 0 auto; padding: 48px 24px 96px; }
+
+  /* ── FEATURED POST ── */
+  .featured-post {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 48px;
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow .3s, transform .3s;
+  }
+  .featured-post:hover { box-shadow: var(--shadow-hover); transform: translateY(-3px); }
+  .featured-cover {
+    position: relative;
+    background: linear-gradient(135deg, var(--navy) 0%, #1a3d54 100%);
+    min-height: 320px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .featured-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .featured-cover-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(18,32,46,0.5) 0%, rgba(31,168,150,0.3) 100%); }
+  .featured-cover-icon { position: relative; z-index: 1; color: rgba(255,255,255,0.2); }
+  .featured-badge { position: absolute; top: 16px; left: 16px; z-index: 2; display: inline-flex; align-items: center; gap: 5px; background: var(--teal); color: #fff; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; }
+  .featured-body { padding: 40px 44px; display: flex; flex-direction: column; justify-content: center; }
+  .post-eyebrow { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .featured-title { font-family: 'Playfair Display', serif; font-size: clamp(1.4rem, 2.5vw, 2rem); font-weight: 700; color: var(--navy); line-height: 1.25; margin-bottom: 16px; }
+  .featured-excerpt { font-size: 0.95rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 24px; }
+  .post-meta { display: flex; align-items: center; gap: 16px; font-size: 0.75rem; color: var(--text-muted); flex-wrap: wrap; }
+  .post-meta-item { display: inline-flex; align-items: center; gap: 5px; }
+  .read-more { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--teal); margin-top: 20px; transition: gap .2s; }
+  .featured-post:hover .read-more { gap: 10px; }
+
+  /* ── POSTS GRID ── */
+  .posts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+
+  /* ── POST CARD ── */
+  .post-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    transition: transform .3s, box-shadow .3s, border-color .3s;
+  }
+  .post-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: var(--teal-mid); }
+  .post-cover {
+    position: relative;
+    height: 200px;
+    background: linear-gradient(135deg, var(--teal-light) 0%, var(--teal-mid) 100%);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .post-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .4s; }
+  .post-card:hover .post-cover img { transform: scale(1.04); }
+  .post-cover-icon { color: var(--teal-dark); opacity: 0.35; }
+  .post-cat-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(255,255,255,0.92);
+    color: var(--navy);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+  .post-body { padding: 20px 22px; flex: 1; display: flex; flex-direction: column; }
+  .post-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; color: var(--navy); line-height: 1.3; margin-bottom: 10px; }
+  .post-excerpt { font-size: 0.82rem; color: var(--text-muted); line-height: 1.65; margin-bottom: 14px; flex: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .post-footer { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .post-date { font-size: 0.72rem; color: var(--text-muted); }
+  .post-reading { display: inline-flex; align-items: center; gap: 4px; font-size: 0.7rem; color: var(--text-muted); }
+  .post-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+  .post-tag { font-size: 0.62rem; font-weight: 600; padding: 2px 8px; border-radius: 20px; background: var(--teal-light); color: var(--teal-dark); border: 1px solid var(--teal-mid); text-decoration: none; transition: background .2s; }
+  .post-tag:hover { background: var(--teal-mid); }
+
+  /* ── EMPTY STATE ── */
+  .empty-state { text-align: center; padding: 80px 24px; color: var(--text-muted); }
+  .empty-state svg { opacity: 0.2; margin-bottom: 20px; }
+  .empty-state h3 { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--navy); margin-bottom: 10px; }
+  .empty-state a { color: var(--teal); text-decoration: none; font-weight: 600; }
+
+  /* ── PAGINATION ── */
+  .pagination { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 56px; flex-wrap: wrap; }
+  .pag-btn { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; text-decoration: none; color: var(--text-muted); border: 1.5px solid var(--border); background: #fff; transition: all .2s; }
+  .pag-btn:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-light); }
+  .pag-btn.active { background: var(--teal); color: #fff; border-color: var(--teal); }
+  .pag-btn.disabled { opacity: 0.35; pointer-events: none; }
+  .pag-arrow { width: auto; padding: 0 16px; gap: 6px; }
+  .pag-dots { border: none; background: none; cursor: default; }
+  .pag-dots:hover { background: none; border-color: transparent; color: var(--text-muted); }
+
+  /* ── FOOTER ── */
+  footer { background: var(--navy); color: rgba(255,255,255,0.5); padding: 40px 0 28px; }
+  .footer-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .footer-logo { display: flex; align-items: center; gap: 8px; font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: #fff; text-decoration: none; }
+  .footer-logo svg { color: var(--teal); }
+  .footer-copy { font-size: 0.75rem; color: rgba(255,255,255,0.3); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+    .featured-post { grid-template-columns: 1fr; }
+    .featured-cover { min-height: 240px; }
+    .posts-grid { grid-template-columns: repeat(2, 1fr); }
+    .hero-count { display: none; }
+  }
+  @media (max-width: 600px) {
+    .posts-grid { grid-template-columns: 1fr; }
+    .search-form { display: none; }
+    .featured-body { padding: 28px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      {% if site_settings.logo %}
+        <img src="{{ site_settings.logo.url }}" alt="LUMA" class="site-logo-img">
+      {% else %}
+        <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+          <path d="M9 1L17 9L9 17L1 9L9 1Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M9 5L13 9L9 13L5 9L9 5Z" fill="currentColor" opacity="0.5"/>
+        </svg>
+        LUMA
+      {% endif %}
+    </a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="{% url 'oferta' %}">Oferta</a></li>
+      <li><a href="{% url 'blog_list' %}" class="active">Blog</a></li>
+      <li><a href="/#o-nas">O nas</a></li>
+      <li><a href="/#kontakt" class="nav-cta">Kontakt</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="/">Home</a>
+  <a href="{% url 'oferta' %}">Oferta</a>
+  <a href="{% url 'blog_list' %}">Blog</a>
+  <a href="/#o-nas">O nas</a>
+  <a href="/#kontakt">Kontakt</a>
+</div>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Strona główna</a>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      {% if active_category or active_tag or search_q %}
+        <a href="{% url 'blog_list' %}">Blog</a>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+        <span class="current">
+          {% if active_category %}{{ active_category.name }}
+          {% elif active_tag %}#{{ active_tag.name }}
+          {% elif search_q %}Wyniki wyszukiwania
+          {% endif %}
+        </span>
+      {% else %}
+        <span class="current">Blog</span>
+      {% endif %}
+    </nav>
+    <div class="hero-row">
+      <div class="hero-text">
+        <h1>
+          {% if active_category %}{{ active_category.name }}
+          {% elif active_tag %}#{{ active_tag.name }}
+          {% elif search_q %}Wyniki dla „{{ search_q }}"
+          {% else %}Blog
+          {% endif %}
+        </h1>
+        <p>
+          {% if search_q %}Znaleziono artykułów: <strong style="color:#fff;">{{ total }}</strong>
+          {% elif active_category and active_category.description %}{{ active_category.description }}
+          {% else %}Porady, aktualności i wiedza o sprzęcie rehabilitacyjnym
+          {% endif %}
+        </p>
+      </div>
+      <div class="hero-count">
+        <span>{{ total }}</span>
+        artykuł{% if total == 1 %}{% elif total < 5 %}y{% else %}ów{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FILTERS BAR -->
+<div class="filters-bar">
+  <div class="filters-inner">
+    <form class="search-form" method="get" action="{% url 'blog_list' %}" autocomplete="off">
+      {% if active_cat_slug %}<input type="hidden" name="kategoria" value="{{ active_cat_slug }}">{% endif %}
+      <input type="text" name="q" value="{{ search_q }}" placeholder="Szukaj artykułu..." class="search-input">
+      <button type="submit" class="search-btn" aria-label="Szukaj">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+        </svg>
+      </button>
+    </form>
+
+    <div class="filter-tabs">
+      <a href="{% url 'blog_list' %}{% if search_q %}?q={{ search_q }}{% endif %}"
+         class="filter-tab filter-tab-all {% if not active_cat_slug and not active_tag_slug %}active{% endif %}">
+        Wszystkie
+      </a>
+      {% for cat in categories %}
+      <a href="{% url 'blog_list' %}?kategoria={{ cat.slug }}{% if search_q %}&q={{ search_q }}{% endif %}"
+         class="filter-tab {% if active_cat_slug == cat.slug %}active{% endif %}">
+        {{ cat.name }}
+      </a>
+      {% endfor %}
+    </div>
+
+    {% if active_tag %}
+    <a href="{% url 'blog_list' %}{% if active_cat_slug %}?kategoria={{ active_cat_slug }}{% endif %}" class="filter-tag-active">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      #{{ active_tag.name }}
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </a>
+    {% endif %}
+
+    {% if search_q %}
+    <a href="{% url 'blog_list' %}{% if active_cat_slug %}?kategoria={{ active_cat_slug }}{% endif %}" class="clear-search">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      Wyczyść
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content-wrap">
+  {% if posts.object_list %}
+
+    {% comment %}Featured post (first item when no filters){% endcomment %}
+    {% if not search_q and not active_cat_slug and not active_tag_slug and posts.number == 1 %}
+      {% with featured=posts.object_list.0 %}
+      <a href="{{ featured.get_absolute_url }}" class="featured-post">
+        <div class="featured-cover">
+          {% if featured.cover_image %}
+            <img src="{{ featured.cover_image.url }}" alt="{{ featured.cover_alt|default:featured.title }}">
+            <div class="featured-cover-overlay"></div>
+          {% else %}
+            <div class="featured-cover-icon">
+              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+            </div>
+          {% endif %}
+          <span class="featured-badge">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            Wyróżniony
+          </span>
+        </div>
+        <div class="featured-body">
+          <div class="post-eyebrow">
+            {% if featured.category %}<span>{{ featured.category.name }}</span><span style="opacity:.3">•</span>{% endif %}
+            <span>{{ featured.published_at|date:"d.m.Y" }}</span>
+          </div>
+          <h2 class="featured-title">{{ featured.title }}</h2>
+          {% if featured.excerpt %}
+            <p class="featured-excerpt">{{ featured.excerpt }}</p>
+          {% endif %}
+          <div class="post-meta">
+            <span class="post-meta-item">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              {{ featured.reading_time }} min czytania
+            </span>
+            <span class="post-meta-item">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              {{ featured.author }}
+            </span>
+          </div>
+          <span class="read-more">
+            Czytaj artykuł
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </span>
+        </div>
+      </a>
+      {% endwith %}
+    {% endif %}
+
+    <div class="posts-grid">
+      {% for post in posts.object_list %}
+        {% if not search_q and not active_cat_slug and not active_tag_slug and posts.number == 1 and forloop.first %}
+          {% comment %}Skip featured on first page{% endcomment %}
+        {% else %}
+        <a href="{{ post.get_absolute_url }}" class="post-card">
+          <div class="post-cover">
+            {% if post.cover_image %}
+              <img src="{{ post.cover_image.url }}" alt="{{ post.cover_alt|default:post.title }}" loading="lazy">
+            {% else %}
+              <div class="post-cover-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+              </div>
+            {% endif %}
+            {% if post.category %}
+              <span class="post-cat-badge">{{ post.category.name }}</span>
+            {% endif %}
+          </div>
+          <div class="post-body">
+            <h3 class="post-title">{{ post.title }}</h3>
+            {% if post.excerpt %}
+              <p class="post-excerpt">{{ post.excerpt }}</p>
+            {% endif %}
+            {% if post.tags.all %}
+            <div class="post-tags">
+              {% for tag in post.tags.all|slice:":3" %}
+                <span class="post-tag">#{{ tag.name }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
+            <div class="post-footer">
+              <span class="post-date">{{ post.published_at|date:"d.m.Y" }}</span>
+              <span class="post-reading">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                {{ post.reading_time }} min
+              </span>
+            </div>
+          </div>
+        </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    {% comment %}Pagination{% endcomment %}
+    {% if posts.paginator.num_pages > 1 %}
+    <nav class="pagination" aria-label="Paginacja">
+      {% if posts.has_previous %}
+      <a class="pag-btn pag-arrow"
+         href="?{% if active_cat_slug %}kategoria={{ active_cat_slug }}&{% endif %}{% if active_tag_slug %}tag={{ active_tag_slug }}&{% endif %}{% if search_q %}q={{ search_q }}&{% endif %}strona={{ posts.previous_page_number }}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Poprzednia
+      </a>
+      {% else %}
+      <span class="pag-btn pag-arrow disabled">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Poprzednia
+      </span>
+      {% endif %}
+
+      {% for num in posts.paginator.page_range %}
+        {% if num == posts.number %}
+          <span class="pag-btn active">{{ num }}</span>
+        {% elif num == 1 or num == posts.paginator.num_pages or num >= posts.number|add:"-2" and num <= posts.number|add:"2" %}
+          <a class="pag-btn"
+             href="?{% if active_cat_slug %}kategoria={{ active_cat_slug }}&{% endif %}{% if active_tag_slug %}tag={{ active_tag_slug }}&{% endif %}{% if search_q %}q={{ search_q }}&{% endif %}strona={{ num }}">{{ num }}</a>
+        {% elif num == posts.number|add:"-3" or num == posts.number|add:"3" %}
+          <span class="pag-btn pag-dots">…</span>
+        {% endif %}
+      {% endfor %}
+
+      {% if posts.has_next %}
+      <a class="pag-btn pag-arrow"
+         href="?{% if active_cat_slug %}kategoria={{ active_cat_slug }}&{% endif %}{% if active_tag_slug %}tag={{ active_tag_slug }}&{% endif %}{% if search_q %}q={{ search_q }}&{% endif %}strona={{ posts.next_page_number }}">
+        Następna
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      {% else %}
+      <span class="pag-btn pag-arrow disabled">
+        Następna
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </span>
+      {% endif %}
+    </nav>
+    {% endif %}
+
+  {% else %}
+    <div class="empty-state">
+      <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+      <h3>Brak artykułów</h3>
+      {% if search_q %}
+        <p>Nie znaleziono wyników dla „{{ search_q }}". <a href="{% url 'blog_list' %}">Wróć do bloga</a>.</p>
+      {% else %}
+        <p>W tej kategorii nie ma jeszcze artykułów. <a href="{% url 'blog_list' %}">Pokaż wszystkie</a>.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <a href="/" class="footer-logo">
+      {% if site_settings.logo %}
+        <img src="{{ site_settings.logo.url }}" alt="LUMA" class="site-logo-img site-logo-img--footer">
+      {% else %}
+        <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+          <path d="M9 1L17 9L9 17L1 9L9 1Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M9 5L13 9L9 13L5 9L9 5Z" fill="currentColor" opacity="0.5"/>
+        </svg>
+        LUMA
+      {% endif %}
+    </a>
+    {% if footer_pages %}
+    <ul style="list-style:none;display:flex;gap:20px;flex-wrap:wrap;">
+      {% for p in footer_pages %}
+      <li><a href="{{ p.get_absolute_url }}" style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.5);text-decoration:none;transition:color .2s;">{{ p.title }}</a></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    <p class="footer-copy">© 2026 LUMA – Wypożyczalnia Sprzętu Medycznego</p>
+  </div>
+</footer>
+
+<script>
+  const hamburger  = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('open');
+    mobileMenu.classList.toggle('open');
+  });
+  document.querySelectorAll('.mobile-menu a').forEach(a => {
+    a.addEventListener('click', () => {
+      hamburger.classList.remove('open');
+      mobileMenu.classList.remove('open');
+    });
+  });
+</script>
+</body>
+</html>
