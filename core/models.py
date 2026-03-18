@@ -131,6 +131,42 @@ class SiteSettings(models.Model):
         return obj
 
 
+class AboutSlide(models.Model):
+    tag   = models.CharField(max_length=60,  default='O nas',     verbose_name='Etykieta')
+    title = models.CharField(max_length=200,                       verbose_name='Tytuł')
+    lead  = models.CharField(max_length=300, blank=True,           verbose_name='Lead (wyróżniony akapit)')
+    body  = models.TextField(blank=True,                           verbose_name='Treść')
+    check_items = models.JSONField(
+        default=list, blank=True,
+        verbose_name='Lista punktów',
+        help_text='Np. ["Wieloletnie doświadczenie", "Konkurencyjne ceny"]'
+    )
+    image        = models.ImageField(upload_to='about/', null=True, blank=True, verbose_name='Zdjęcie')
+    stat1_number = models.CharField(max_length=20, blank=True, verbose_name='Statystyka 1 – liczba')
+    stat1_label  = models.CharField(max_length=60, blank=True, verbose_name='Statystyka 1 – opis')
+    stat2_number = models.CharField(max_length=20, blank=True, verbose_name='Statystyka 2 – liczba')
+    stat2_label  = models.CharField(max_length=60, blank=True, verbose_name='Statystyka 2 – opis')
+    order        = models.PositiveSmallIntegerField(default=0, verbose_name='Kolejność')
+    is_active    = models.BooleanField(default=True, verbose_name='Aktywny')
+
+    class Meta:
+        verbose_name        = 'Slajd – O nas'
+        verbose_name_plural = 'Slajdy – O nas'
+        ordering            = ['order']
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        _compress = False
+        if self.image and self.image.name:
+            old = AboutSlide.objects.filter(pk=self.pk).values_list('image', flat=True).first() if self.pk else None
+            _compress = old != self.image.name
+        super().save(*args, **kwargs)
+        if _compress:
+            compress_image(self.image)
+
+
 class Category(models.Model):
     name = models.CharField(max_length=120)
     slug = models.SlugField(unique=True)

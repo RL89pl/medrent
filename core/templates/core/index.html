@@ -475,6 +475,78 @@
   }
   .check-list li svg { color: var(--teal); flex-shrink: 0; }
 
+  /* ── ABOUT SLIDER ── */
+  .about-slides-wrapper {
+    display: grid;
+    grid-template-areas: "stack";
+  }
+  .about-slide {
+    grid-area: stack;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.55s ease, transform 0.55s ease;
+    pointer-events: none;
+    visibility: hidden;
+  }
+  .about-slide.is-active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+    visibility: visible;
+  }
+  /* Navigation bar */
+  .about-slider-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 48px;
+  }
+  .about-arrow {
+    width: 40px; height: 40px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    background: var(--bg-white);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .2s;
+    flex-shrink: 0;
+  }
+  .about-arrow:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-light); }
+  .about-arrow:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+  .about-dots {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .about-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    border: none;
+    cursor: pointer;
+    transition: all .3s;
+    padding: 0;
+  }
+  .about-dot.is-active {
+    background: var(--teal);
+    width: 24px;
+    border-radius: 4px;
+  }
+  /* Slide counter */
+  .about-counter {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    min-width: 40px;
+    text-align: center;
+  }
+  .about-counter span { color: var(--teal); font-family: 'Playfair Display', serif; }
+
   /* ── OFERTA (kategorie) ── */
   #oferta { background: var(--bg); }
   .oferta-header {
@@ -936,6 +1008,95 @@
 <!-- O NAS -->
 <section id="o-nas">
   <div class="container">
+
+    {% if about_slides %}
+    {# ── SLIDER MODE ── #}
+    <div class="about-slides-wrapper" id="aboutSlider" aria-live="polite">
+      {% for slide in about_slides %}
+      <div class="about-slide{% if forloop.first %} is-active{% endif %}" role="group" aria-label="Slajd {{ forloop.counter }} z {{ about_slides|length }}">
+        <div class="about-grid">
+
+          {# Lewa kolumna – zdjęcie #}
+          <div class="about-image reveal">
+            <div class="about-image-inner">
+              {% if slide.image %}
+              <img src="{{ slide.image.url }}" alt="{{ slide.title }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;">
+              {% else %}
+              <svg width="80" height="80" viewBox="0 0 80 80" fill="none" stroke="white" stroke-width="1.5">
+                <circle cx="40" cy="24" r="12"/>
+                <path d="M20 60c0-11 9-20 20-20s20 9 20 20"/>
+                <path d="M55 30c4 2 7 6 7 11"/>
+                <path d="M25 30c-4 2-7 6-7 11"/>
+              </svg>
+              <p>Zdjęcie</p>
+              {% endif %}
+            </div>
+            {% if slide.stat1_number or slide.stat2_number %}
+            <div class="about-stats" style="position:absolute;bottom:20px;left:20px;right:20px;background:none;">
+              {% if slide.stat1_number %}
+              <div class="stat-box" style="background:rgba(255,255,255,0.95);">
+                <div class="stat-number">{{ slide.stat1_number }}</div>
+                <div class="stat-label">{{ slide.stat1_label }}</div>
+              </div>
+              {% endif %}
+              {% if slide.stat2_number %}
+              <div class="stat-box" style="background:rgba(255,255,255,0.95);">
+                <div class="stat-number">{{ slide.stat2_number }}</div>
+                <div class="stat-label">{{ slide.stat2_label }}</div>
+              </div>
+              {% endif %}
+            </div>
+            {% endif %}
+          </div>
+
+          {# Prawa kolumna – treść #}
+          <div class="about-text">
+            <p class="section-tag">{{ slide.tag }}</p>
+            <h2 class="section-title">{{ slide.title }}</h2>
+            {% if slide.lead %}<p class="about-lead">{{ slide.lead }}</p>{% endif %}
+            {% if slide.body %}<p class="about-body">{{ slide.body }}</p>{% endif %}
+            {% if slide.check_items %}
+            <ul class="check-list">
+              {% for item in slide.check_items %}
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                {{ item }}
+              </li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+          </div>
+
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if about_slides|length > 1 %}
+    <div class="about-slider-nav">
+      <button class="about-arrow" id="aboutPrev" aria-label="Poprzedni slajd">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <div class="about-dots" role="tablist" aria-label="Nawigacja slajdów" id="aboutDots">
+        {% for slide in about_slides %}
+        <button class="about-dot{% if forloop.first %} is-active{% endif %}"
+                role="tab"
+                aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+                aria-label="Slajd {{ forloop.counter }}: {{ slide.title }}"
+                data-index="{{ forloop.counter0 }}"></button>
+        {% endfor %}
+      </div>
+      <div class="about-counter">
+        <span id="aboutCurrent">1</span> / {{ about_slides|length }}
+      </div>
+      <button class="about-arrow" id="aboutNext" aria-label="Następny slajd">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+    {% endif %}
+
+    {% else %}
+    {# ── FALLBACK: dane z SiteSettings ── #}
     <div class="about-grid">
       <div class="about-image reveal">
         <div class="about-image-inner">
@@ -951,7 +1112,7 @@
           <p>Zdjęcie zespołu</p>
           {% endif %}
         </div>
-        <div class="about-stats" style="position:absolute; bottom:20px; left:20px; right:20px; background: none;">
+        <div class="about-stats" style="position:absolute;bottom:20px;left:20px;right:20px;background:none;">
           <div class="stat-box" style="background:rgba(255,255,255,0.95);">
             <div class="stat-number">{{ site_settings.about_stat1_number }}</div>
             <div class="stat-label">{{ site_settings.about_stat1_label }}</div>
@@ -971,9 +1132,7 @@
         <ul class="check-list">
           {% for item in site_settings.about_check_items %}
           <li>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M20 6L9 17l-5-5"/>
-            </svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
             {{ item }}
           </li>
           {% endfor %}
@@ -981,6 +1140,8 @@
         {% endif %}
       </div>
     </div>
+    {% endif %}
+
   </div>
 </section>
 
@@ -1294,6 +1455,79 @@
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
   }, { threshold: 0.1 });
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // ── ABOUT SLIDER ──────────────────────────────────────────────────────────
+  (function () {
+    const slider  = document.getElementById('aboutSlider');
+    if (!slider) return;
+    const slides  = Array.from(slider.querySelectorAll('.about-slide'));
+    if (slides.length <= 1) return;
+
+    const dotsEl  = document.getElementById('aboutDots');
+    const dots    = dotsEl ? Array.from(dotsEl.querySelectorAll('.about-dot')) : [];
+    const prevBtn = document.getElementById('aboutPrev');
+    const nextBtn = document.getElementById('aboutNext');
+    const counter = document.getElementById('aboutCurrent');
+    let current   = 0;
+    let timer     = null;
+    const DELAY   = 7000;
+
+    function goTo(idx) {
+      slides[current].classList.remove('is-active');
+      if (dots[current]) { dots[current].classList.remove('is-active'); dots[current].setAttribute('aria-selected', 'false'); }
+
+      current = (idx + slides.length) % slides.length;
+
+      slides[current].classList.add('is-active');
+      if (dots[current]) { dots[current].classList.add('is-active'); dots[current].setAttribute('aria-selected', 'true'); }
+      if (counter) counter.textContent = current + 1;
+
+      // Re-trigger reveal animations for items inside new slide
+      slides[current].querySelectorAll('.reveal').forEach(el => {
+        el.classList.remove('visible');
+        requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('visible')));
+      });
+    }
+
+    function startAuto() {
+      clearInterval(timer);
+      timer = setInterval(() => goTo(current + 1), DELAY);
+    }
+
+    if (prevBtn) prevBtn.addEventListener('click', () => { goTo(current - 1); startAuto(); });
+    if (nextBtn) nextBtn.addEventListener('click', () => { goTo(current + 1); startAuto(); });
+    dots.forEach(dot => {
+      dot.addEventListener('click', () => { goTo(parseInt(dot.dataset.index, 10)); startAuto(); });
+    });
+
+    // Pause on hover / focus inside slider section
+    const section = slider.closest('section');
+    if (section) {
+      section.addEventListener('mouseenter', () => clearInterval(timer));
+      section.addEventListener('mouseleave', startAuto);
+      section.addEventListener('focusin',    () => clearInterval(timer));
+      section.addEventListener('focusout',   startAuto);
+    }
+
+    // Keyboard navigation
+    slider.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft')  { goTo(current - 1); startAuto(); }
+      if (e.key === 'ArrowRight') { goTo(current + 1); startAuto(); }
+    });
+
+    // Swipe support (touch)
+    let touchStartX = 0;
+    slider.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    slider.addEventListener('touchend',   e => {
+      const diff = touchStartX - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 50) { goTo(diff > 0 ? current + 1 : current - 1); startAuto(); }
+    }, { passive: true });
+
+    // Mark first slide's reveal elements as visible on load
+    slides[0].querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+
+    startAuto();
+  })();
 
   // Char counter
   const msgArea = document.getElementById('message');

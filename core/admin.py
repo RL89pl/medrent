@@ -1,5 +1,30 @@
 from django.contrib import admin
-from .models import Category, Product, ProductImage, SiteSettings, ContactMessage, Page
+from .models import Category, Product, ProductImage, SiteSettings, ContactMessage, Page, AboutSlide
+
+
+@admin.register(AboutSlide)
+class AboutSlideAdmin(admin.ModelAdmin):
+    list_display  = ['title', 'tag', 'order', 'is_active']
+    list_editable = ['order', 'is_active']
+    ordering      = ['order']
+    fieldsets = (
+        (None, {
+            'fields': ('is_active', 'order', 'tag', 'title'),
+        }),
+        ('Treść', {
+            'fields': ('lead', 'body', 'check_items'),
+            'description': 'Lista punktów jako JSON, np. ["Punkt 1", "Punkt 2"]',
+        }),
+        ('Zdjęcie', {
+            'fields': ('image',),
+        }),
+        ('Statystyki', {
+            'fields': (
+                ('stat1_number', 'stat1_label'),
+                ('stat2_number', 'stat2_label'),
+            ),
+        }),
+    )
 
 
 @admin.register(ContactMessage)

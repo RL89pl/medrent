@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.db.models import Q
-from .models import Product, Category, SiteSettings, ContactMessage, Page
+from .models import Product, Category, SiteSettings, ContactMessage, Page, AboutSlide
 
 
 def _build_category_groups(qs):
@@ -22,13 +22,15 @@ def _build_category_groups(qs):
 
 def home(request):
     from blog.models import Post as BlogPost
-    categories = Category.objects.all()
-    settings = SiteSettings.get()
+    categories   = Category.objects.all()
+    settings     = SiteSettings.get()
+    about_slides = list(AboutSlide.objects.filter(is_active=True))
     recent_posts = BlogPost.objects.filter(status='published').select_related('category')[:3]
     return render(request, 'core/index.html', {
-        'categories':   categories,
+        'categories':    categories,
         'site_settings': settings,
-        'recent_posts': recent_posts,
+        'about_slides':  about_slides,
+        'recent_posts':  recent_posts,
     })
 
 
