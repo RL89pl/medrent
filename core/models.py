@@ -54,10 +54,13 @@ class SiteSettings(models.Model):
     # ── USŁUGI (3 kafelki) ───────────────────────────────────────────────────
     service1_title = models.CharField(max_length=80,  default='Wypożycz',                                                   verbose_name='Usługa 1 – tytuł')
     service1_desc  = models.CharField(max_length=200, default='Szeroki wybór sprzętu rehabilitacyjnego na dni, tygodnie lub miesiące', verbose_name='Usługa 1 – opis')
+    service1_url   = models.CharField(max_length=200, blank=True, verbose_name='Usługa 1 – link', help_text='Np. /oferta/ lub https://… Zostaw puste, jeśli kafelek nie ma być klikalny.')
     service2_title = models.CharField(max_length=80,  default='Kup na własność',                                            verbose_name='Usługa 2 – tytuł')
     service2_desc  = models.CharField(max_length=200, default='Sprawdzony sprzęt w atrakcyjnych cenach – nowy i używany',  verbose_name='Usługa 2 – opis')
+    service2_url   = models.CharField(max_length=200, blank=True, verbose_name='Usługa 2 – link', help_text='Np. /oferta/ lub https://… Zostaw puste, jeśli kafelek nie ma być klikalny.')
     service3_title = models.CharField(max_length=80,  default='Zamów dostawę',                                              verbose_name='Usługa 3 – tytuł')
     service3_desc  = models.CharField(max_length=200, default='Przywozimy sprzęt pod Twoje drzwi – szybko i wygodnie',    verbose_name='Usługa 3 – opis')
+    service3_url   = models.CharField(max_length=200, blank=True, verbose_name='Usługa 3 – link', help_text='Np. /oferta/ lub https://… Zostaw puste, jeśli kafelek nie ma być klikalny.')
 
     # ── O NAS ────────────────────────────────────────────────────────────────
     about_tag   = models.CharField(max_length=60,  default='O nas',                               verbose_name='O nas – etykieta')

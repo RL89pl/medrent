@@ -294,6 +294,35 @@
   /* Max load badge */
   .max-load-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.7rem; font-weight: 600; color: var(--text-muted); }
 
+  /* Availability filter tabs */
+  .avail-tabs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 0 10px 16px;
+    margin-left: 16px;
+    border-left: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .avail-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    text-decoration: none;
+    color: var(--text-muted);
+    border: 1.5px solid transparent;
+    transition: all .2s;
+  }
+  .avail-tab:hover { color: var(--teal); background: var(--teal-light); }
+  .avail-tab.active-rent { color: #fff; background: var(--teal); border-color: var(--teal); }
+  .avail-tab.active-sale { color: var(--navy); background: #fff8e1; border-color: #f5c842; }
+
   /* BACK TO TOP */
   .back-to-top { position: fixed; bottom: 28px; right: 28px; width: 44px; height: 44px; background: var(--teal); color: #fff; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(31,168,150,0.4); opacity: 0; transition: opacity .3s, transform .3s; transform: translateY(10px); z-index: 500; }
   .back-to-top.visible { opacity: 1; transform: translateY(0); }
@@ -409,6 +438,7 @@
     <!-- Search -->
     <form class="search-form" method="get" action="{% url 'oferta' %}" id="filterForm" autocomplete="off">
       {% if active_slug %}<input type="hidden" name="kategoria" value="{{ active_slug }}">{% endif %}
+      {% if dostepnosc %}<input type="hidden" name="dostepnosc" value="{{ dostepnosc }}">{% endif %}
       <input type="text" name="q" id="filterSearchInput" value="{{ search_q }}" placeholder="Szukaj produktu..." class="search-input">
       <button type="submit" class="search-btn" aria-label="Szukaj">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -419,12 +449,12 @@
 
     <!-- Category tabs -->
     <div class="filter-tabs">
-      <a href="{% url 'oferta' %}{% if search_q %}?q={{ search_q }}{% endif %}"
+      <a href="{% url 'oferta' %}{% if search_q or dostepnosc %}?{% if search_q %}q={{ search_q }}{% endif %}{% if search_q and dostepnosc %}&{% endif %}{% if dostepnosc %}dostepnosc={{ dostepnosc }}{% endif %}{% endif %}"
          class="filter-tab filter-tab-all {% if not active_slug %}active{% endif %}">
         Wszystkie
       </a>
       {% for cat in categories %}
-      <a href="{% url 'oferta' %}?kategoria={{ cat.slug }}{% if search_q %}&q={{ search_q }}{% endif %}"
+      <a href="{% url 'oferta' %}?kategoria={{ cat.slug }}{% if search_q %}&q={{ search_q }}{% endif %}{% if dostepnosc %}&dostepnosc={{ dostepnosc }}{% endif %}"
          class="filter-tab {% if active_slug == cat.slug %}active{% endif %}"
          id="tab-{{ cat.slug }}">
         <span style="display:flex;align-items:center;flex-shrink:0;">
@@ -435,8 +465,22 @@
       {% endfor %}
     </div>
 
+    <!-- Availability tabs -->
+    <div class="avail-tabs">
+      <a href="{% url 'oferta' %}?dostepnosc=wynajem{% if active_slug %}&kategoria={{ active_slug }}{% endif %}{% if search_q %}&q={{ search_q }}{% endif %}"
+         class="avail-tab {% if dostepnosc == 'wynajem' %}active-rent{% endif %}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Wypożycz
+      </a>
+      <a href="{% url 'oferta' %}?dostepnosc=sprzedaz{% if active_slug %}&kategoria={{ active_slug }}{% endif %}{% if search_q %}&q={{ search_q }}{% endif %}"
+         class="avail-tab {% if dostepnosc == 'sprzedaz' %}active-sale{% endif %}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        Kup na własność
+      </a>
+    </div>
+
     {% if search_q %}
-    <a href="{% url 'oferta' %}{% if active_slug %}?kategoria={{ active_slug }}{% endif %}" class="clear-search">
+    <a href="{% url 'oferta' %}{% if active_slug or dostepnosc %}?{% endif %}{% if active_slug %}kategoria={{ active_slug }}{% endif %}{% if active_slug and dostepnosc %}&{% endif %}{% if dostepnosc %}dostepnosc={{ dostepnosc }}{% endif %}" class="clear-search">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
       Wyczyść
     </a>

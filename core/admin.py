@@ -28,9 +28,9 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         }),
         ('Usługi – 3 kafelki', {
             'fields': (
-                'service1_title', 'service1_desc',
-                'service2_title', 'service2_desc',
-                'service3_title', 'service3_desc',
+                'service1_title', 'service1_desc', 'service1_url',
+                'service2_title', 'service2_desc', 'service2_url',
+                'service3_title', 'service3_desc', 'service3_url',
             ),
         }),
         ('O nas', {

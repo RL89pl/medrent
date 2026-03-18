@@ -35,6 +35,7 @@ def oferta(request):
 
     active_slug = request.GET.get('kategoria', '')
     search_q = request.GET.get('q', '').strip()
+    dostepnosc = request.GET.get('dostepnosc', '')
 
     if active_slug:
         qs = qs.filter(category__slug=active_slug)
@@ -44,6 +45,10 @@ def oferta(request):
             Q(short_description__icontains=search_q) |
             Q(subcategory__icontains=search_q)
         )
+    if dostepnosc == 'wynajem':
+        qs = qs.filter(for_rent=True)
+    elif dostepnosc == 'sprzedaz':
+        qs = qs.filter(for_sale=True)
 
     category_groups = _build_category_groups(qs)
     active_category = categories.filter(slug=active_slug).first() if active_slug else None
@@ -54,6 +59,7 @@ def oferta(request):
         'active_slug': active_slug,
         'active_category': active_category,
         'search_q': search_q,
+        'dostepnosc': dostepnosc,
         'total': qs.count(),
         'site_settings': SiteSettings.get(),
     })
